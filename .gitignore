@@ -21,3 +21,4 @@
 go.work
 
 asteroids
+web/asteroids.wasm
