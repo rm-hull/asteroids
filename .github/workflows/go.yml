@@ -16,6 +16,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install packages
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
@@ -30,4 +35,6 @@ jobs:
         version: v1.54
 
     - name: Test
-      run: go test -v ./...
+      env:
+        DISPLAY: ":99.0"
+      run: xvfb-run --auto-servernum  go test -race -v ./...
