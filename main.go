@@ -1,80 +1,55 @@
 package main
 
 import (
-	"asteroids/internal/sprites"
+	"asteroids/internal/entity"
+	"asteroids/internal/geometry"
+	"errors"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Game struct{}
+type Game struct {
+	Player     entity.Player
+	fullscreen bool
+}
+
+var screenSize = geometry.Dimension{W: 1024, H: 768}
 
 func (g *Game) Update() error {
+
+	if ebiten.IsKeyPressed(ebiten.KeyQ) {
+		return errors.New("dejar de ser un desertor")
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyF) {
+		g.fullscreen = !g.fullscreen
+		ebiten.SetFullscreen(g.fullscreen)
+	}
+
+	err := g.Player.Update()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(sprites.BigAsteroid1, nil)
 
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(150, 200)
-	screen.DrawImage(sprites.BigAsteroid2, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(190, 20)
-	screen.DrawImage(sprites.BigAsteroid3, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(20, 150)
-	screen.DrawImage(sprites.MediumAsteroid1, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(300, 180)
-	screen.DrawImage(sprites.MediumAsteroid2, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(80, 140)
-	screen.DrawImage(sprites.MediumAsteroid3, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(400, 400)
-	screen.DrawImage(sprites.SmallAsteroid1, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(300, 250)
-	screen.DrawImage(sprites.SmallAsteroid2, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(100, 400)
-	screen.DrawImage(sprites.SmallAsteroid3, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(500, 350)
-	screen.DrawImage(sprites.SpaceShip1, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(450, 250)
-	screen.DrawImage(sprites.SpaceShip2, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(400, 150)
-	screen.DrawImage(sprites.AlienSpaceShip, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(350, 15)
-	screen.DrawImage(sprites.Bullet1, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(15, 450)
-	screen.DrawImage(sprites.Bullet2, op)
+	g.Player.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return outsideWidth, outsideHeight
+	return int(screenSize.W), int(screenSize.H)
 }
 
 func main() {
-	g := &Game{}
+	g := &Game{
+		Player:     *entity.NewPlayer(screenSize),
+		fullscreen: false,
+	}
 
+	// ebiten.SetFullscreen(true)
+	ebiten.SetWindowSize(int(screenSize.W), int(screenSize.H))
 	err := ebiten.RunGame(g)
 	if err != nil {
 		panic(err)
