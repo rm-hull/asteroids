@@ -82,7 +82,7 @@ func (b *Bullet) Bounds() *image.Rectangle {
 	}
 }
 
-func (b *Bullet) CollisionDetection(asteroids map[int]*Asteroid) []*Asteroid {
+func (b *Bullet) AsteroidCollisionDetection(asteroids map[int]*Asteroid) []*Asteroid {
 	if b.timer.PercentComplete() < 90 {
 		bounds := b.Bounds()
 		for _, asteroid := range asteroids {
@@ -94,4 +94,15 @@ func (b *Bullet) CollisionDetection(asteroids map[int]*Asteroid) []*Asteroid {
 	}
 
 	return make([]*Asteroid, 0)
+}
+
+func (b *Bullet) AlienCollisionDetection(alien *Alien) bool {
+	if b.timer.PercentComplete() < 90 && alien.IsAlive() {
+		if hit := b.Bounds().In(*alien.Bounds()); hit {
+			b.directHit = true
+			alien.Kill()
+			return true
+		}
+	}
+	return false
 }

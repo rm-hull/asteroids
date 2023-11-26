@@ -15,15 +15,16 @@ import (
 )
 
 type Player struct {
-	position  geometry.Vector
-	velocity  geometry.Vector
-	direction float64
-	speed     float64
-	sprite    *ebiten.Image
-	deadTimer *internal.Timer
-	bounds    *geometry.Dimension
-	livesLeft int
-	score     int
+	position       geometry.Vector
+	velocity       geometry.Vector
+	direction      float64
+	speed          float64
+	sprite         *ebiten.Image
+	deadTimer      *internal.Timer
+	cannotDieTimer *internal.Timer
+	bounds         *geometry.Dimension
+	livesLeft      int
+	score          int
 }
 
 const numLives = 3
@@ -36,6 +37,9 @@ var spaceshipHeight = sprites.SpaceShip1.Bounds().Dy()
 var spaceshipHalfW = float64(spaceshipWidth / 2)
 var spaceshipHalfH = float64(spaceshipHeight / 2)
 
+const deathDuration = 2 * time.Second
+const cannotDieDuration = 3 * time.Second
+
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
 	return &Player{
 		direction: 0,
@@ -44,10 +48,11 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 			X: screenBounds.W/2 - spaceshipHalfW,
 			Y: screenBounds.H/2 - spaceshipHalfH,
 		},
-		sprite:    sprites.SpaceShip1,
-		bounds:    screenBounds,
-		livesLeft: numLives,
-		score:     0,
+		cannotDieTimer: internal.NewTimer(cannotDieDuration),
+		sprite:         sprites.SpaceShip1,
+		bounds:         screenBounds,
+		livesLeft:      numLives,
+		score:          0,
 	}
 }
 
@@ -69,8 +74,11 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	op.GeoM.Translate(p.position.X, p.position.Y)
 
-	if p.deadTimer != nil {
+	if p.IsDying() {
 		fade := 1.0 - p.deadTimer.PercentComplete()
+		cm.Scale(1.0, 1.0, 1.0, fade)
+	} else if p.CannotDie() {
+		fade := p.cannotDieTimer.PercentComplete()
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
@@ -107,6 +115,7 @@ func (p *Player) Update() error {
 		p.HandleMovement()
 	}
 
+	p.cannotDieTimer.Update()
 	p.position.Add(&p.velocity)
 	p.position.CheckEdges(p.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
 
@@ -114,10 +123,6 @@ func (p *Player) Update() error {
 }
 
 func (p *Player) HandleMovement() {
-	if p.livesLeft == 0 {
-		return
-	}
-
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		p.direction -= math.Pi / float64(ebiten.TPS())
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
@@ -162,11 +167,15 @@ func (p *Player) Reset() {
 	p.position.X = p.bounds.W/2 - spaceshipHalfW
 	p.position.Y = p.bounds.H/2 - spaceshipHalfW
 	p.sprite = sprites.SpaceShip1
+	p.cannotDieTimer.Reset()
 	p.livesLeft--
 }
 
 func (p *Player) Kill() {
-	p.deadTimer = internal.NewTimer(2 * time.Second)
+	if p.CannotDie() {
+		return
+	}
+	p.deadTimer = internal.NewTimer(deathDuration)
 }
 
 func (p *Player) FireBullet() *Bullet {
@@ -175,7 +184,7 @@ func (p *Player) FireBullet() *Bullet {
 }
 
 func (p *Player) NotNear() *geometry.Vector {
-	halfH := p.bounds.H / 2
+	halfH := p.bounds.H / 3
 	for {
 		position := geometry.Vector{
 			X: rand.Float64() * p.bounds.W,
@@ -190,4 +199,12 @@ func (p *Player) NotNear() *geometry.Vector {
 
 func (p *Player) UpdateScore(value int) {
 	p.score += value
+}
+
+func (p *Player) IsDying() bool {
+	return p.deadTimer != nil
+}
+
+func (p *Player) CannotDie() bool {
+	return !p.cannotDieTimer.IsReady()
 }

@@ -13,6 +13,7 @@ import (
 
 type Game struct {
 	Player        *entity.Player
+	Alien         *entity.Alien
 	Asteroids     map[int]*entity.Asteroid
 	Bullets       map[int]*entity.Bullet
 	Sequence      *internal.Sequence
@@ -68,8 +69,12 @@ func (g *Game) Update() error {
 			return err
 		}
 
-		for _, fragment := range bullet.CollisionDetection(g.Asteroids) {
+		for _, fragment := range bullet.AsteroidCollisionDetection(g.Asteroids) {
 			g.Asteroids[g.Sequence.GetNext()] = fragment
+		}
+
+		if bullet.AlienCollisionDetection(g.Alien) {
+			g.Player.UpdateScore(g.Alien.Value())
 		}
 
 		if bullet.IsExpired() {
@@ -78,6 +83,10 @@ func (g *Game) Update() error {
 	}
 
 	err := g.Player.Update()
+	if err != nil {
+		return err
+	}
+	err = g.Alien.Update()
 	if err != nil {
 		return err
 	}
@@ -94,6 +103,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	g.Player.Draw(screen)
+	g.Alien.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -107,6 +117,7 @@ func main() {
 		shootCooldown: internal.NewTimer(cooldownTime),
 		Sequence:      seq,
 		Player:        player,
+		Alien:         entity.NewAlien(&screenSize, player.NotNear()),
 		Bullets:       make(map[int]*entity.Bullet),
 		Asteroids: map[int]*entity.Asteroid{
 			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),

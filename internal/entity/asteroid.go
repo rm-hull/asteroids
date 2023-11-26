@@ -42,8 +42,9 @@ func NewAsteroid(size int, position *geometry.Vector, screenBounds *geometry.Dim
 }
 
 func (a *Asteroid) Draw(screen *ebiten.Image) {
-	halfW := float64(a.sprite.Bounds().Dx()) / 2
-	halfH := float64(a.sprite.Bounds().Dy()) / 2
+	bounds := a.sprite.Bounds()
+	halfW := float64(bounds.Dx()) / 2
+	halfH := float64(bounds.Dy()) / 2
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-halfW, -halfH)
