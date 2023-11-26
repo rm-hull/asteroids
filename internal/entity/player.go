@@ -20,11 +20,13 @@ type Player struct {
 	speed     float64
 	sprite    *ebiten.Image
 	deadTimer *internal.Timer
-	bounds    geometry.Dimension
+	bounds    *geometry.Dimension
 	livesLeft int
 }
 
-const maxSpeed = 5
+const numLives = 3
+const maxSpeed = 5.0
+const blastRadius = 40.0
 
 var spaceshipWidth = sprites.SpaceShip1.Bounds().Dx()
 var spaceshipHeight = sprites.SpaceShip1.Bounds().Dy()
@@ -32,7 +34,7 @@ var spaceshipHeight = sprites.SpaceShip1.Bounds().Dy()
 var spaceshipHalfW = float64(spaceshipWidth / 2)
 var spaceshipHalfH = float64(spaceshipHeight / 2)
 
-func NewPlayer(screenBounds geometry.Dimension) *Player {
+func NewPlayer(screenBounds *geometry.Dimension) *Player {
 	return &Player{
 		direction: 0,
 		speed:     0,
@@ -42,11 +44,11 @@ func NewPlayer(screenBounds geometry.Dimension) *Player {
 		},
 		sprite:    sprites.SpaceShip1,
 		bounds:    screenBounds,
-		livesLeft: 3,
+		livesLeft: numLives,
 	}
 }
 
-func (p *Player) Position() *geometry.Vector {
+func (p *Player) CurrentPosition() *geometry.Vector {
 	return &p.position
 }
 
@@ -69,11 +71,23 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
+	// noseTip := p.NoseTip()
+	// ebitenutil.DrawRect(screen, p.position.X, p.position.Y, float64(spaceshipWidth), float64(spaceshipHeight), color.RGBA{255, 128, 0, 128})
+	// ebitenutil.DrawCircle(screen,
+	// 	noseTip.X, noseTip.Y,
+	// 	5, color.RGBA{50, 0, 255, 192})
 	colorm.DrawImage(screen, p.sprite, cm, op)
 
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
+}
+
+func (p *Player) NoseTip() *geometry.Vector {
+	return &geometry.Vector{
+		X: p.position.X + spaceshipHalfW + (math.Cos(p.direction) * blastRadius),
+		Y: p.position.Y + spaceshipHalfH + (math.Sin(p.direction) * blastRadius),
+	}
 }
 
 func (p *Player) Update() error {
@@ -94,7 +108,7 @@ func (p *Player) Update() error {
 	}
 
 	p.position.Add(&p.velocity)
-	p.position.CheckEdges(&p.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
+	p.position.CheckEdges(p.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
 
 	return nil
 }
@@ -153,4 +167,9 @@ func (p *Player) Reset() {
 
 func (p *Player) Kill() {
 	p.deadTimer = internal.NewTimer(2 * time.Second)
+}
+
+func (p *Player) FireBullet() *Bullet {
+	spawnPos := p.NoseTip()
+	return NewBullet(p.bounds, spawnPos, p.direction)
 }
