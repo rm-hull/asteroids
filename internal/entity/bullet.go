@@ -4,6 +4,7 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
+	"image"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,13 +18,18 @@ type Bullet struct {
 	bounds    *geometry.Dimension
 	sprite    *ebiten.Image
 	timer     *internal.Timer
+	directHit bool
 }
 
 func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64) *Bullet {
 	bulletSpeed := float64(480 / ebiten.TPS())
+	bounds := sprites.Bullet1.Bounds()
+	halfW := float64(bounds.Dx() / 2)
+	halfH := float64(bounds.Dy() / 2)
+
 	return &Bullet{
 		direction: direction,
-		position:  *position,
+		position:  geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
 		velocity:  geometry.VectorFrom(direction, bulletSpeed),
 		sprite:    sprites.Bullet1,
 		bounds:    screenBounds,
@@ -31,38 +37,61 @@ func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, dire
 	}
 }
 
-var bulletWidth = sprites.Bullet1.Bounds().Dx()
-var bulletHeight = sprites.Bullet1.Bounds().Dy()
-
-var bulletHalfW = float64(bulletWidth / 2)
-var bulletHalfH = float64(bulletHeight / 2)
-
 func (b *Bullet) Draw(screen *ebiten.Image) {
-
 	if b.IsExpired() {
 		return
 	}
 
 	cm := colorm.ColorM{}
 	op := &colorm.DrawImageOptions{}
-	op.GeoM.Translate(b.position.X-bulletHalfW, b.position.Y-bulletHalfH)
+	op.GeoM.Translate(b.position.X, b.position.Y)
 
 	if pctComplete := b.timer.PercentComplete(); pctComplete > 0.75 {
 		fade := ((1.0 - pctComplete) / 0.25)
 		cm.Scale(1, 1, 1, fade)
 	}
+	// bounds2 := b.Bounds()
+	// ebitenutil.DrawRect(screen, float64(bounds2.Min.X), float64(bounds2.Min.Y), float64(bounds2.Dx()), float64(bounds2.Dy()), color.RGBA{128, 255, 0, 88})
+
 	colorm.DrawImage(screen, b.sprite, cm, op)
 }
 
 func (b *Bullet) Update() error {
 	b.timer.Update()
 	if !b.IsExpired() {
+
+		bounds := b.sprite.Bounds()
+		halfW := float64(bounds.Dx() / 2)
+		halfH := float64(bounds.Dy() / 2)
+
 		b.position.Add(&b.velocity)
-		b.position.CheckEdges(b.bounds, bulletHalfW, bulletHalfH)
+		b.position.CheckEdges(b.bounds, halfW, halfH)
 	}
 	return nil
 }
 
 func (b *Bullet) IsExpired() bool {
-	return b.timer.IsReady()
+	return b.directHit || b.timer.IsReady()
+}
+
+func (b *Bullet) Bounds() *image.Rectangle {
+	point := image.Point{X: int(b.position.X), Y: int(b.position.Y)}
+	return &image.Rectangle{
+		Min: point,
+		Max: b.sprite.Bounds().Max.Add(point),
+	}
+}
+
+func (b *Bullet) CollisionDetection(asteroids map[int]*Asteroid) []*Asteroid {
+	if b.timer.PercentComplete() < 90 {
+		bounds := b.Bounds()
+		for _, asteroid := range asteroids {
+			if bounds.In(*asteroid.Bounds()) {
+				b.directHit = true
+				return asteroid.Explode()
+			}
+		}
+	}
+
+	return make([]*Asteroid, 0)
 }

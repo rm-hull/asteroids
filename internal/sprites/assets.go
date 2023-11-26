@@ -46,9 +46,9 @@ var LargeAsteroids = []*ebiten.Image{
 }
 
 var MediumAsteroids = []*ebiten.Image{
-	sprite(spriteSheet, 0, 160, 96, 96),
-	sprite(spriteSheet, 96, 160, 94, 96),
-	sprite(spriteSheet, 192, 160, 96, 96),
+	sprite(spriteSheet, 0, 160, 80, 96),
+	sprite(spriteSheet, 96, 160, 80, 96),
+	sprite(spriteSheet, 192, 160, 80, 96),
 }
 
 var SmallAsteroids = []*ebiten.Image{

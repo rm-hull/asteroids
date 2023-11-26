@@ -13,9 +13,11 @@ import (
 
 type Game struct {
 	Player        *entity.Player
-	Asteroids     []*entity.Asteroid
-	Bullets       map[time.Time]*entity.Bullet
+	Asteroids     map[int]*entity.Asteroid
+	Bullets       map[int]*entity.Bullet
+	Sequence      *internal.Sequence
 	fullscreen    bool
+	paused        bool
 	shootCooldown *internal.Timer
 }
 
@@ -34,16 +36,29 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(g.fullscreen)
 	}
 
+	if ebiten.IsKeyPressed(ebiten.KeyP) {
+		g.paused = !g.paused
+	}
+
+	if g.paused {
+		return nil
+	}
+
 	g.shootCooldown.Update()
 	if g.shootCooldown.IsReady() && len(g.Bullets) < maxSalvo && ebiten.IsKeyPressed(ebiten.KeyShiftLeft) {
 		g.shootCooldown.Reset()
-		g.Bullets[time.Now()] = g.Player.FireBullet()
+		g.Bullets[g.Sequence.GetNext()] = g.Player.FireBullet()
 	}
 
-	for _, asteroid := range g.Asteroids {
+	for idx, asteroid := range g.Asteroids {
 		err := asteroid.Update()
 		if err != nil {
 			return err
+		}
+
+		if asteroid.IsExploded() {
+			g.Player.UpdateScore(asteroid.Value())
+			delete(g.Asteroids, idx)
 		}
 	}
 
@@ -51,6 +66,10 @@ func (g *Game) Update() error {
 		err := bullet.Update()
 		if err != nil {
 			return err
+		}
+
+		for _, fragment := range bullet.CollisionDetection(g.Asteroids) {
+			g.Asteroids[g.Sequence.GetNext()] = fragment
 		}
 
 		if bullet.IsExpired() {
@@ -83,20 +102,23 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	player := entity.NewPlayer(&screenSize)
-	posn := player.CurrentPosition()
+	seq := internal.NewSequence()
 	g := &Game{
 		shootCooldown: internal.NewTimer(cooldownTime),
+		Sequence:      seq,
 		Player:        player,
-		Bullets:       make(map[time.Time]*entity.Bullet),
-		Asteroids: []*entity.Asteroid{
-			entity.NewAsteroid(sprites.Large, posn, &screenSize),
-			entity.NewAsteroid(sprites.Large, posn, &screenSize),
-			entity.NewAsteroid(sprites.Large, posn, &screenSize),
-			entity.NewAsteroid(sprites.Medium, posn, &screenSize),
-			entity.NewAsteroid(sprites.Medium, posn, &screenSize),
-			entity.NewAsteroid(sprites.Small, posn, &screenSize),
-			entity.NewAsteroid(sprites.Small, posn, &screenSize),
-			entity.NewAsteroid(sprites.Small, posn, &screenSize),
+		Bullets:       make(map[int]*entity.Bullet),
+		Asteroids: map[int]*entity.Asteroid{
+			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Medium, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Medium, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
+			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
 		},
 		fullscreen: false,
 	}

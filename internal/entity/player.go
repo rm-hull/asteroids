@@ -6,6 +6,7 @@ import (
 	"asteroids/internal/sprites"
 	"fmt"
 	"math"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -22,6 +23,7 @@ type Player struct {
 	deadTimer *internal.Timer
 	bounds    *geometry.Dimension
 	livesLeft int
+	score     int
 }
 
 const numLives = 3
@@ -45,6 +47,7 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 		sprite:    sprites.SpaceShip1,
 		bounds:    screenBounds,
 		livesLeft: numLives,
+		score:     0,
 	}
 }
 
@@ -71,16 +74,13 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
-	// noseTip := p.NoseTip()
-	// ebitenutil.DrawRect(screen, p.position.X, p.position.Y, float64(spaceshipWidth), float64(spaceshipHeight), color.RGBA{255, 128, 0, 128})
-	// ebitenutil.DrawCircle(screen,
-	// 	noseTip.X, noseTip.Y,
-	// 	5, color.RGBA{50, 0, 255, 192})
+	// ebitenutil.DrawCircle(screen, p.position.X+spaceshipHalfW, p.position.Y+spaceshipHalfH, blastRadius*0.5, color.RGBA{255, 128, 0, 128})
 	colorm.DrawImage(screen, p.sprite, cm, op)
 
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 350, 0)
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
@@ -172,4 +172,22 @@ func (p *Player) Kill() {
 func (p *Player) FireBullet() *Bullet {
 	spawnPos := p.NoseTip()
 	return NewBullet(p.bounds, spawnPos, p.direction)
+}
+
+func (p *Player) NotNear() *geometry.Vector {
+	halfH := p.bounds.H / 2
+	for {
+		position := geometry.Vector{
+			X: rand.Float64() * p.bounds.W,
+			Y: rand.Float64() * p.bounds.H,
+		}
+
+		if p.position.DistanceFrom(&position) > halfH {
+			return &position
+		}
+	}
+}
+
+func (p *Player) UpdateScore(value int) {
+	p.score += value
 }
