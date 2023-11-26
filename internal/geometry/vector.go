@@ -24,7 +24,7 @@ func (v *Vector) DistanceFrom(other *Vector) float64 {
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
-func (v *Vector) Accumulate(other *Vector) {
+func (v *Vector) Add(other *Vector) {
 	v.X += other.X
 	v.Y += other.Y
 }
@@ -32,13 +32,6 @@ func (v *Vector) Accumulate(other *Vector) {
 func (v *Vector) Scale(factor float64) {
 	v.X *= factor
 	v.Y *= factor
-}
-
-func Add(a, b *Vector) Vector {
-	return Vector{
-		X: a.X + b.X,
-		Y: a.Y + b.Y,
-	}
 }
 
 func VectorFrom(direction float64, speed float64) Vector {

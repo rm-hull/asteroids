@@ -64,7 +64,7 @@ func (a *Asteroid) Draw(screen *ebiten.Image) {
 
 func (a *Asteroid) Update() error {
 	a.direction += a.rotation
-	a.position.Accumulate(&a.velocity)
+	a.position.Add(&a.velocity)
 	a.position.CheckEdges(a.bounds, float64(a.sprite.Bounds().Dx()), float64(a.sprite.Bounds().Dy()))
 	return nil
 }
