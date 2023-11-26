@@ -15,7 +15,13 @@ func (v *Vector) Normalize() Vector {
 }
 
 func (v *Vector) Magnitude() float64 {
-	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+	return v.DistanceFrom(&Zero)
+}
+
+func (v *Vector) DistanceFrom(other *Vector) float64 {
+	dx := v.X - other.X
+	dy := v.Y - other.Y
+	return math.Sqrt(dx*dx + dy*dy)
 }
 
 func (v *Vector) Accumulate(other *Vector) {

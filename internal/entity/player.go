@@ -21,30 +21,34 @@ type Player struct {
 
 const maxSpeed = 5
 
-var width = sprites.SpaceShip1.Bounds().Dx()
-var height = sprites.SpaceShip1.Bounds().Dy()
+var spaceshipWidth = sprites.SpaceShip1.Bounds().Dx()
+var spaceshipHeight = sprites.SpaceShip1.Bounds().Dy()
 
-var halfW = float64(width / 2)
-var halfH = float64(height / 2)
+var spaceshipHalfW = float64(spaceshipWidth / 2)
+var spaceshipHalfH = float64(spaceshipHeight / 2)
 
 func NewPlayer(screenBounds geometry.Dimension) *Player {
 	return &Player{
 		direction: 0,
 		speed:     0,
 		position: geometry.Vector{
-			X: screenBounds.W/2 - halfW,
-			Y: screenBounds.H/2 - halfH,
+			X: screenBounds.W/2 - spaceshipHalfW,
+			Y: screenBounds.H/2 - spaceshipHalfH,
 		},
 		thrusting: false,
 		bounds:    screenBounds,
 	}
 }
 
+func (p *Player) Position() *geometry.Vector {
+	return &p.position
+}
+
 func (p *Player) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-halfW, -halfH)
+	op.GeoM.Translate(-spaceshipHalfW, -spaceshipHalfH)
 	op.GeoM.Rotate(p.direction)
-	op.GeoM.Translate(halfW, halfH)
+	op.GeoM.Translate(spaceshipHalfW, spaceshipHalfH)
 
 	op.GeoM.Translate(p.position.X, p.position.Y)
 
@@ -70,25 +74,23 @@ func (p *Player) Update() error {
 
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		keyVector = geometry.VectorFrom(p.direction, 0.2)
+		newVector := geometry.Add(&p.velocity, &keyVector)
+		p.speed = newVector.Magnitude()
+
+		if p.speed < maxSpeed {
+			p.velocity = newVector
+		} else {
+			newVector.Scale(maxSpeed / p.speed)
+			p.velocity = newVector
+		}
 		p.thrusting = true
+
 	} else {
-		keyVector = geometry.Zero
 		p.thrusting = false
 	}
 
-	newVector := geometry.Add(&p.velocity, &keyVector)
-	p.speed = newVector.Magnitude()
-
-	if p.speed < maxSpeed {
-		p.velocity = newVector
-	} else {
-		newVector.Scale(maxSpeed / p.speed)
-		p.velocity = newVector
-	}
-
 	p.position.Accumulate(&p.velocity)
-
-	p.position.CheckEdges(&p.bounds, float64(width), float64(height))
+	p.position.CheckEdges(&p.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
 
 	return nil
 }
