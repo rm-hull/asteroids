@@ -82,3 +82,12 @@ func Asteroid(size int) *ebiten.Image {
 		return SmallAsteroids[idx]
 	}
 }
+
+func Bullet(size int) *ebiten.Image {
+	switch size {
+	case Large:
+		return Bullet2
+	default:
+		return Bullet1
+	}
+}

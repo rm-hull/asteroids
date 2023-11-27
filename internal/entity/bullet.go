@@ -12,28 +12,28 @@ import (
 )
 
 type Bullet struct {
-	position  geometry.Vector
-	velocity  geometry.Vector
-	direction float64
-	bounds    *geometry.Dimension
-	sprite    *ebiten.Image
-	timer     *internal.Timer
-	directHit bool
+	position     geometry.Vector
+	velocity     geometry.Vector
+	direction    float64
+	bounds       *geometry.Dimension
+	sprite       *ebiten.Image
+	timer        *internal.Timer
+	directHit    bool
 }
 
-func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64) *Bullet {
+func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64, size int) *Bullet {
 	bulletSpeed := float64(480 / ebiten.TPS())
 	bounds := sprites.Bullet1.Bounds()
 	halfW := float64(bounds.Dx() / 2)
 	halfH := float64(bounds.Dy() / 2)
 
 	return &Bullet{
-		direction: direction,
-		position:  geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
-		velocity:  geometry.VectorFrom(direction, bulletSpeed),
-		sprite:    sprites.Bullet1,
-		bounds:    screenBounds,
-		timer:     internal.NewTimer(3 * time.Second),
+		direction:    direction,
+		position:     geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
+		velocity:     geometry.VectorFrom(direction, bulletSpeed),
+		sprite:       sprites.Bullet(size),
+		bounds:       screenBounds,
+		timer:        internal.NewTimer(3 * time.Second),
 	}
 }
 

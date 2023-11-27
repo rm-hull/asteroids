@@ -180,7 +180,7 @@ func (p *Player) Kill() {
 
 func (p *Player) FireBullet() *Bullet {
 	spawnPos := p.NoseTip()
-	return NewBullet(p.bounds, spawnPos, p.direction)
+	return NewBullet(p.bounds, spawnPos, p.direction, sprites.Small)
 }
 
 func (p *Player) NotNear() *geometry.Vector {
