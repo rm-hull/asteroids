@@ -117,11 +117,6 @@ func (p *Player) Update() error {
 		return nil
 	}
 
-	// Temporary -
-	if ebiten.IsKeyPressed(ebiten.KeyK) && p.deadTimer == nil {
-		p.Kill()
-	}
-
 	for idx, bullet := range p.bullets {
 		err := bullet.Update()
 		if err != nil {
@@ -177,7 +172,7 @@ func (p *Player) HandleMovement() {
 
 func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
-	if p.shootCooldown.IsReady() && len(p.bullets) < maxSalvo && ebiten.IsKeyPressed(ebiten.KeyShiftLeft) {
+	if p.shootCooldown.IsReady() && len(p.bullets) < maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
 		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction, sprites.Small)
 	}

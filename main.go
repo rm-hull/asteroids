@@ -95,10 +95,9 @@ func (g *Game) HandleCollisionDetection() {
 		}
 	}
 
-	if g.Player.IsAlive() && g.Alien.Bounds().Overlaps(*g.Player.Bounds()) {
+	if g.Player.IsAlive() && g.Alien.IsAlive() && g.Alien.Bounds().Overlaps(*g.Player.Bounds()) {
 		g.Player.Kill()
 	}
-
 
 }
 func (g *Game) Draw(screen *ebiten.Image) {
