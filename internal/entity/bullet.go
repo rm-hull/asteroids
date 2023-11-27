@@ -12,13 +12,13 @@ import (
 )
 
 type Bullet struct {
-	position     geometry.Vector
-	velocity     geometry.Vector
-	direction    float64
-	bounds       *geometry.Dimension
-	sprite       *ebiten.Image
-	timer        *internal.Timer
-	directHit    bool
+	position  geometry.Vector
+	velocity  geometry.Vector
+	direction float64
+	bounds    *geometry.Dimension
+	sprite    *ebiten.Image
+	timer     *internal.Timer
+	directHit bool
 }
 
 func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64, size int) *Bullet {
@@ -28,12 +28,12 @@ func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, dire
 	halfH := float64(bounds.Dy() / 2)
 
 	return &Bullet{
-		direction:    direction,
-		position:     geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
-		velocity:     geometry.VectorFrom(direction, bulletSpeed),
-		sprite:       sprites.Bullet(size),
-		bounds:       screenBounds,
-		timer:        internal.NewTimer(3 * time.Second),
+		direction: direction,
+		position:  geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
+		velocity:  geometry.VectorFrom(direction, bulletSpeed),
+		sprite:    sprites.Bullet(size),
+		bounds:    screenBounds,
+		timer:     internal.NewTimer(2 * time.Second),
 	}
 }
 
@@ -59,13 +59,7 @@ func (b *Bullet) Draw(screen *ebiten.Image) {
 func (b *Bullet) Update() error {
 	b.timer.Update()
 	if !b.IsExpired() {
-
-		bounds := b.sprite.Bounds()
-		halfW := float64(bounds.Dx() / 2)
-		halfH := float64(bounds.Dy() / 2)
-
 		b.position.Add(&b.velocity)
-		b.position.CheckEdges(b.bounds, halfW, halfH)
 	}
 	return nil
 }
@@ -82,25 +76,10 @@ func (b *Bullet) Bounds() *image.Rectangle {
 	}
 }
 
-func (b *Bullet) AsteroidCollisionDetection(asteroids map[int]*Asteroid) []*Asteroid {
+func (b *Bullet) CollisionDetected(bounder Bounder) bool {
 	if b.timer.PercentComplete() < 90 {
-		bounds := b.Bounds()
-		for _, asteroid := range asteroids {
-			if bounds.In(*asteroid.Bounds()) {
-				b.directHit = true
-				return asteroid.Explode()
-			}
-		}
-	}
-
-	return make([]*Asteroid, 0)
-}
-
-func (b *Bullet) AlienCollisionDetection(alien *Alien) bool {
-	if b.timer.PercentComplete() < 90 && alien.IsAlive() {
-		if hit := b.Bounds().In(*alien.Bounds()); hit {
+		if hit := b.Bounds().In(*bounder.Bounds()); hit {
 			b.directHit = true
-			alien.Kill()
 			return true
 		}
 	}

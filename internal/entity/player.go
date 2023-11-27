@@ -5,6 +5,7 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"fmt"
+	"image"
 	"math"
 	"math/rand"
 	"time"
@@ -99,8 +100,8 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 350, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d (alive = %t)", p.livesLeft, p.IsAlive()), 250, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 400, 0)
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
@@ -178,7 +179,7 @@ func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
 	if p.shootCooldown.IsReady() && len(p.bullets) < maxSalvo && ebiten.IsKeyPressed(ebiten.KeyShiftLeft) {
 		p.shootCooldown.Reset()
-		p.bullets[p.sequence.GetNext()] = p.FireBullet()
+		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction, sprites.Small)
 	}
 }
 
@@ -211,11 +212,6 @@ func (p *Player) Kill() {
 	p.deadTimer = internal.NewTimer(deathDuration)
 }
 
-func (p *Player) FireBullet() *Bullet {
-	spawnPos := p.NoseTip()
-	return NewBullet(p.bounds, spawnPos, p.direction, sprites.Small)
-}
-
 func (p *Player) NotNear() *geometry.Vector {
 	halfH := p.bounds.H / 3
 	for {
@@ -238,6 +234,10 @@ func (p *Player) IsDying() bool {
 	return p.deadTimer != nil
 }
 
+func (p *Player) IsAlive() bool {
+	return !p.IsDying() && !p.CannotDie()
+}
+
 func (p *Player) CannotDie() bool {
 	return !p.cannotDieTimer.IsReady()
 }
@@ -245,5 +245,13 @@ func (p *Player) CannotDie() bool {
 func (p *Player) Bullets(callback func(bullet *Bullet)) {
 	for _, bullet := range p.bullets {
 		callback(bullet)
+	}
+}
+
+func (p *Player) Bounds() *image.Rectangle {
+	point := image.Point{X: int(p.position.X), Y: int(p.position.Y)}
+	return &image.Rectangle{
+		Min: point,
+		Max: p.sprite.Bounds().Max.Add(point),
 	}
 }

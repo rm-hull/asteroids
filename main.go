@@ -51,20 +51,13 @@ func (g *Game) Update() error {
 			delete(g.Asteroids, idx)
 		}
 	}
-	
+
 	err := g.Player.Update()
 	if err != nil {
 		return err
 	}
-	g.Player.Bullets(func(bullet *entity.Bullet) {
-		for _, fragment := range bullet.AsteroidCollisionDetection(g.Asteroids) {
-			g.Asteroids[g.Sequence.GetNext()] = fragment
-		}
 
-		if bullet.AlienCollisionDetection(g.Alien) {
-			g.Player.UpdateScore(g.Alien.Value())
-		}
-	})
+	g.HandleCollisionDetection()
 
 	err = g.Alien.Update()
 	if err != nil {
@@ -74,6 +67,40 @@ func (g *Game) Update() error {
 	return nil
 }
 
+func (g *Game) HandleCollisionDetection() {
+	g.Player.Bullets(func(bullet *entity.Bullet) {
+		for _, asteroid := range g.Asteroids {
+			if !asteroid.IsExploded() && bullet.CollisionDetected(asteroid) {
+				for _, fragment := range asteroid.Explode() {
+					g.Asteroids[g.Sequence.GetNext()] = fragment
+				}
+			}
+		}
+
+		if g.Alien.IsAlive() && bullet.CollisionDetected(g.Alien) {
+			g.Alien.Kill()
+			g.Player.UpdateScore(g.Alien.Value())
+		}
+	})
+
+	g.Alien.Bullets(func(bullet *entity.Bullet) {
+		if g.Player.IsAlive() && bullet.CollisionDetected(g.Player) {
+			g.Player.Kill()
+		}
+	})
+
+	for _, asteroid := range g.Asteroids {
+		if g.Player.IsAlive() && asteroid.CollisionDetected(g.Player) {
+			g.Player.Kill()
+		}
+	}
+
+	if g.Player.IsAlive() && g.Alien.Bounds().Overlaps(*g.Player.Bounds()) {
+		g.Player.Kill()
+	}
+
+
+}
 func (g *Game) Draw(screen *ebiten.Image) {
 	for _, asteroid := range g.Asteroids {
 		asteroid.Draw(screen)

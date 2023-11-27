@@ -115,3 +115,7 @@ func (a *Asteroid) Bounds() *image.Rectangle {
 		Max: a.sprite.Bounds().Max.Add(point),
 	}
 }
+
+func (a *Asteroid) CollisionDetected(bounder Bounder) bool {
+	return bounder.Bounds().In(*a.Bounds())
+}
