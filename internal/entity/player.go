@@ -70,10 +70,16 @@ func (p *Player) CurrentPosition() *geometry.Vector {
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 350, 0)
+
 	if p.livesLeft == 0 {
 		ebitenutil.DebugPrintAt(screen, "GAME OVER", 0, 0)
 		return
 	}
+
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
 
 	for _, bullet := range p.bullets {
 		bullet.Draw(screen)
@@ -97,11 +103,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	// ebitenutil.DrawCircle(screen, p.position.X+spaceshipHalfW, p.position.Y+spaceshipHalfH, blastRadius*0.5, color.RGBA{255, 128, 0, 128})
 	colorm.DrawImage(screen, p.sprite, cm, op)
-
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d (alive = %t)", p.livesLeft, p.IsAlive()), 250, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 400, 0)
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
