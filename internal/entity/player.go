@@ -22,9 +22,12 @@ type Player struct {
 	sprite         *ebiten.Image
 	deadTimer      *internal.Timer
 	cannotDieTimer *internal.Timer
+	shootCooldown  *internal.Timer
 	bounds         *geometry.Dimension
 	livesLeft      int
 	score          int
+	bullets        map[int]*Bullet
+	sequence       *internal.Sequence
 }
 
 const numLives = 3
@@ -39,6 +42,8 @@ var spaceshipHalfH = float64(spaceshipHeight / 2)
 
 const deathDuration = 2 * time.Second
 const cannotDieDuration = 3 * time.Second
+const cooldownTime = 100 * time.Millisecond
+const maxSalvo = 3
 
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
 	return &Player{
@@ -49,10 +54,13 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 			Y: screenBounds.H/2 - spaceshipHalfH,
 		},
 		cannotDieTimer: internal.NewTimer(cannotDieDuration),
+		shootCooldown:  internal.NewTimer(cooldownTime),
 		sprite:         sprites.SpaceShip1,
 		bounds:         screenBounds,
 		livesLeft:      numLives,
 		score:          0,
+		bullets:        make(map[int]*Bullet),
+		sequence:       internal.NewSequence(),
 	}
 }
 
@@ -64,6 +72,10 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	if p.livesLeft == 0 {
 		ebitenutil.DebugPrintAt(screen, "GAME OVER", 0, 0)
 		return
+	}
+
+	for _, bullet := range p.bullets {
+		bullet.Draw(screen)
 	}
 
 	cm := colorm.ColorM{}
@@ -109,11 +121,24 @@ func (p *Player) Update() error {
 		p.Kill()
 	}
 
+	for idx, bullet := range p.bullets {
+		err := bullet.Update()
+		if err != nil {
+			return err
+		}
+
+		if bullet.IsExpired() {
+			delete(p.bullets, idx)
+		}
+	}
+
 	if p.deadTimer != nil {
 		p.SpinOutOfControl()
 	} else {
 		p.HandleMovement()
 	}
+
+	p.HandleShooting()
 
 	p.cannotDieTimer.Update()
 	p.position.Add(&p.velocity)
@@ -146,6 +171,14 @@ func (p *Player) HandleMovement() {
 	} else {
 		// Back to normal
 		p.sprite = sprites.SpaceShip1
+	}
+}
+
+func (p *Player) HandleShooting() {
+	p.shootCooldown.Update()
+	if p.shootCooldown.IsReady() && len(p.bullets) < maxSalvo && ebiten.IsKeyPressed(ebiten.KeyShiftLeft) {
+		p.shootCooldown.Reset()
+		p.bullets[p.sequence.GetNext()] = p.FireBullet()
 	}
 }
 
@@ -207,4 +240,10 @@ func (p *Player) IsDying() bool {
 
 func (p *Player) CannotDie() bool {
 	return !p.cannotDieTimer.IsReady()
+}
+
+func (p *Player) Bullets(callback func(bullet *Bullet)) {
+	for _, bullet := range p.bullets {
+		callback(bullet)
+	}
 }

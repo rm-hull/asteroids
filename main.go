@@ -6,25 +6,20 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"errors"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Game struct {
-	Player        *entity.Player
-	Alien         *entity.Alien
-	Asteroids     map[int]*entity.Asteroid
-	Bullets       map[int]*entity.Bullet
-	Sequence      *internal.Sequence
-	fullscreen    bool
-	paused        bool
-	shootCooldown *internal.Timer
+	Player     *entity.Player
+	Alien      *entity.Alien
+	Asteroids  map[int]*entity.Asteroid
+	Sequence   *internal.Sequence
+	fullscreen bool
+	paused     bool
 }
 
 var screenSize = geometry.Dimension{W: 1024, H: 768}
-var cooldownTime = 100 * time.Millisecond
-var maxSalvo = 3
 
 func (g *Game) Update() error {
 
@@ -45,12 +40,6 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	g.shootCooldown.Update()
-	if g.shootCooldown.IsReady() && len(g.Bullets) < maxSalvo && ebiten.IsKeyPressed(ebiten.KeyShiftLeft) {
-		g.shootCooldown.Reset()
-		g.Bullets[g.Sequence.GetNext()] = g.Player.FireBullet()
-	}
-
 	for idx, asteroid := range g.Asteroids {
 		err := asteroid.Update()
 		if err != nil {
@@ -62,13 +51,12 @@ func (g *Game) Update() error {
 			delete(g.Asteroids, idx)
 		}
 	}
-
-	for idx, bullet := range g.Bullets {
-		err := bullet.Update()
-		if err != nil {
-			return err
-		}
-
+	
+	err := g.Player.Update()
+	if err != nil {
+		return err
+	}
+	g.Player.Bullets(func(bullet *entity.Bullet) {
 		for _, fragment := range bullet.AsteroidCollisionDetection(g.Asteroids) {
 			g.Asteroids[g.Sequence.GetNext()] = fragment
 		}
@@ -76,30 +64,19 @@ func (g *Game) Update() error {
 		if bullet.AlienCollisionDetection(g.Alien) {
 			g.Player.UpdateScore(g.Alien.Value())
 		}
+	})
 
-		if bullet.IsExpired() {
-			delete(g.Bullets, idx)
-		}
-	}
-
-	err := g.Player.Update()
-	if err != nil {
-		return err
-	}
 	err = g.Alien.Update()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	for _, asteroid := range g.Asteroids {
 		asteroid.Draw(screen)
-	}
-
-	for _, bullet := range g.Bullets {
-		bullet.Draw(screen)
 	}
 
 	g.Player.Draw(screen)
@@ -114,11 +91,9 @@ func main() {
 	player := entity.NewPlayer(&screenSize)
 	seq := internal.NewSequence()
 	g := &Game{
-		shootCooldown: internal.NewTimer(cooldownTime),
-		Sequence:      seq,
-		Player:        player,
-		Alien:         entity.NewAlien(&screenSize, player.NotNear()),
-		Bullets:       make(map[int]*entity.Bullet),
+		Sequence: seq,
+		Player:   player,
+		Alien:    entity.NewAlien(&screenSize, player.NotNear()),
 		Asteroids: map[int]*entity.Asteroid{
 			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
 			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
