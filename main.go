@@ -15,9 +15,9 @@ type Game struct {
 	Alien      *entity.Alien
 	Asteroids  map[int]*entity.Asteroid
 	Sequence   *internal.Sequence
+	Level      *entity.Level
 	fullscreen bool
 	paused     bool
-	level      int
 }
 
 var screenSize = geometry.Dimension{W: 1024, H: 768}
@@ -69,6 +69,12 @@ func (g *Game) Update() error {
 		return err
 	}
 
+
+	err = g.Level.Update()
+	if err != nil {
+		return err
+	}
+
 	if len(g.Asteroids) == 0 {
 		g.NextLevel()
 	}
@@ -116,6 +122,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.Player.Draw(screen)
 	g.Alien.Draw(screen)
+	g.Level.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -123,16 +130,16 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func (g *Game) Reset(n int) {
-	g.level = 1
+	g.Level.Reset(1)
 	g.Player = entity.NewPlayer(&screenSize)
-	g.Alien = entity.NewAlien(g.level, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Alien = entity.NewAlien(1, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
 	g.Asteroids = entity.NewAsteroidBelt(n, g.Sequence, g.Player, &screenSize)
 }
 
 func (g *Game) NextLevel() {
-	g.level++
-	g.Alien = entity.NewAlien(g.level, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
-	g.Asteroids = entity.NewAsteroidBelt(5+g.level, g.Sequence, g.Player, &screenSize)
+	g.Level.Next()
+	g.Alien = entity.NewAlien(g.Level.Current(), g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Asteroids = entity.NewAsteroidBelt(5+g.Level.Current(), g.Sequence, g.Player, &screenSize)
 }
 
 func main() {
@@ -142,9 +149,9 @@ func main() {
 		Sequence:   seq,
 		Player:     player,
 		Alien:      entity.NewAlien(1, player.NotNear(), player.CurrentPosition(), &screenSize),
-		Asteroids:  entity.NewAsteroidBelt(5, seq, player, &screenSize),
+		Asteroids:  entity.NewAsteroidBelt(6, seq, player, &screenSize),
+		Level:      entity.NewLevel(&screenSize),
 		fullscreen: false,
-		level:      1,
 	}
 
 	// ebiten.SetFullscreen(true)
