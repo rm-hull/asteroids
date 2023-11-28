@@ -1,6 +1,9 @@
 package geometry
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type Vector struct {
 	X float64
@@ -16,6 +19,24 @@ func (v *Vector) Normalize() Vector {
 
 func (v *Vector) Magnitude() float64 {
 	return v.DistanceFrom(&Zero)
+}
+
+func (v *Vector) DotProduct(other *Vector) float64 {
+	return v.X*other.X + v.Y*other.Y
+}
+
+func (v Vector) String() string {
+	return fmt.Sprintf("%0.1f,%0.1f", v.X, v.Y)
+}
+
+func (v *Vector) AngleTo(other *Vector) float64 {
+	dx := other.X - v.X
+	dy := other.Y - v.Y
+	signedAngle := math.Atan2(dy, dx)
+	if signedAngle < 0 {
+		signedAngle += 2 * math.Pi
+	}
+	return signedAngle
 }
 
 func (v *Vector) DistanceFrom(other *Vector) float64 {

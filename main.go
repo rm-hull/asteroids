@@ -4,10 +4,10 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/entity"
 	"asteroids/internal/geometry"
-	"asteroids/internal/sprites"
 	"errors"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Game struct {
@@ -17,22 +17,27 @@ type Game struct {
 	Sequence   *internal.Sequence
 	fullscreen bool
 	paused     bool
+	level      int
 }
 
 var screenSize = geometry.Dimension{W: 1024, H: 768}
 
 func (g *Game) Update() error {
 
-	if ebiten.IsKeyPressed(ebiten.KeyQ) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		return errors.New("dejar de ser un desertor")
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyF) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		g.fullscreen = !g.fullscreen
 		ebiten.SetFullscreen(g.fullscreen)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyP) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		g.Reset(10)
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
 		g.paused = !g.paused
 	}
 
@@ -62,6 +67,10 @@ func (g *Game) Update() error {
 	err = g.Alien.Update()
 	if err != nil {
 		return err
+	}
+
+	if len(g.Asteroids) == 0 {
+		g.NextLevel()
 	}
 
 	return nil
@@ -113,26 +122,29 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return int(screenSize.W), int(screenSize.H)
 }
 
+func (g *Game) Reset(n int) {
+	g.level = 1
+	g.Player = entity.NewPlayer(&screenSize)
+	g.Alien = entity.NewAlien(g.level, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Asteroids = entity.NewAsteroidBelt(n, g.Sequence, g.Player, &screenSize)
+}
+
+func (g *Game) NextLevel() {
+	g.level++
+	g.Alien = entity.NewAlien(g.level, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Asteroids = entity.NewAsteroidBelt(5+g.level, g.Sequence, g.Player, &screenSize)
+}
+
 func main() {
 	player := entity.NewPlayer(&screenSize)
 	seq := internal.NewSequence()
 	g := &Game{
-		Sequence: seq,
-		Player:   player,
-		Alien:    entity.NewAlien(&screenSize, player.NotNear()),
-		Asteroids: map[int]*entity.Asteroid{
-			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Large, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Medium, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Medium, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
-			seq.GetNext(): entity.NewAsteroid(sprites.Small, player.NotNear(), &screenSize),
-		},
+		Sequence:   seq,
+		Player:     player,
+		Alien:      entity.NewAlien(1, player.NotNear(), player.CurrentPosition(), &screenSize),
+		Asteroids:  entity.NewAsteroidBelt(5, seq, player, &screenSize),
 		fullscreen: false,
+		level:      1,
 	}
 
 	// ebiten.SetFullscreen(true)

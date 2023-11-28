@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"image"
@@ -24,6 +25,28 @@ type Asteroid struct {
 	bounds    *geometry.Dimension
 	sprite    *ebiten.Image
 	exploded  bool
+}
+
+func randSize() int {
+	n := rand.Intn(10)
+	if n < 5 {
+		return sprites.Large
+	}
+
+	if n < 8 {
+		return sprites.Medium
+	}
+
+	return sprites.Small
+}
+
+func NewAsteroidBelt(n int, seq *internal.Sequence, player *Player, screenBounds *geometry.Dimension) map[int]*Asteroid {
+	var asteroids = make(map[int]*Asteroid)
+	for i := 0; i < n; i++ {
+		idx := seq.GetNext()
+		asteroids[idx] = NewAsteroid(randSize(), player.NotNear(), screenBounds)
+	}
+	return asteroids
 }
 
 func NewAsteroid(size int, position *geometry.Vector, screenBounds *geometry.Dimension) *Asteroid {

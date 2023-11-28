@@ -32,6 +32,11 @@ func (t *Timer) Reset() {
 	t.currentTicks = 0
 }
 
+func (t *Timer) ResetTarget(d time.Duration) {
+	t.currentTicks = 0
+	t.targetTicks = int(d.Milliseconds()) * ebiten.TPS() / 1000
+}
+
 func (t *Timer) CurrentTicks() int {
 	return t.currentTicks
 }

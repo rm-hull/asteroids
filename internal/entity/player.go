@@ -13,22 +13,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Player struct {
-	position       geometry.Vector
-	velocity       geometry.Vector
-	direction      float64
-	speed          float64
-	sprite         *ebiten.Image
-	deadTimer      *internal.Timer
-	cannotDieTimer *internal.Timer
-	shootCooldown  *internal.Timer
-	bounds         *geometry.Dimension
-	livesLeft      int
-	score          int
-	bullets        map[int]*Bullet
-	sequence       *internal.Sequence
+	position         geometry.Vector
+	velocity         geometry.Vector
+	direction        float64
+	speed            float64
+	sprite           *ebiten.Image
+	deadTimer        *internal.Timer
+	cannotDieTimer   *internal.Timer
+	shootCooldown    *internal.Timer
+	bounds           *geometry.Dimension
+	livesLeft        int
+	score            int
+	bullets          map[int]*Bullet
+	sequence         *internal.Sequence
+	godMode          bool
+	maxSalvo         int
+	shootingAccuracy float64
 }
 
 const numLives = 3
@@ -44,7 +48,6 @@ var spaceshipHalfH = float64(spaceshipHeight / 2)
 const deathDuration = 2 * time.Second
 const cannotDieDuration = 3 * time.Second
 const cooldownTime = 100 * time.Millisecond
-const maxSalvo = 3
 
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
 	return &Player{
@@ -54,14 +57,16 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 			X: screenBounds.W/2 - spaceshipHalfW,
 			Y: screenBounds.H/2 - spaceshipHalfH,
 		},
-		cannotDieTimer: internal.NewTimer(cannotDieDuration),
-		shootCooldown:  internal.NewTimer(cooldownTime),
-		sprite:         sprites.SpaceShip1,
-		bounds:         screenBounds,
-		livesLeft:      numLives,
-		score:          0,
-		bullets:        make(map[int]*Bullet),
-		sequence:       internal.NewSequence(),
+		cannotDieTimer:   internal.NewTimer(cannotDieDuration),
+		shootCooldown:    internal.NewTimer(cooldownTime),
+		sprite:           sprites.SpaceShip1,
+		bounds:           screenBounds,
+		livesLeft:        numLives,
+		score:            0,
+		bullets:          make(map[int]*Bullet),
+		sequence:         internal.NewSequence(),
+		maxSalvo:         3,
+		shootingAccuracy: 1.0,
 	}
 }
 
@@ -70,16 +75,15 @@ func (p *Player) CurrentPosition() *geometry.Vector {
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 350, 0)
 
 	if p.livesLeft == 0 {
-		ebitenutil.DebugPrintAt(screen, "GAME OVER", 0, 0)
+		ebitenutil.DebugPrintAt(screen, "GAME OVER", screen.Bounds().Dx()/2, screen.Bounds().Dy()/2)
 		return
 	}
-
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
 
 	for _, bullet := range p.bullets {
 		bullet.Draw(screen)
@@ -101,7 +105,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
-	// ebitenutil.DrawCircle(screen, p.position.X+spaceshipHalfW, p.position.Y+spaceshipHalfH, blastRadius*0.5, color.RGBA{255, 128, 0, 128})
 	colorm.DrawImage(screen, p.sprite, cm, op)
 }
 
@@ -136,6 +139,10 @@ func (p *Player) Update() error {
 	}
 
 	p.HandleShooting()
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		p.ToggleGodMode()
+	}
 
 	p.cannotDieTimer.Update()
 	p.position.Add(&p.velocity)
@@ -173,10 +180,28 @@ func (p *Player) HandleMovement() {
 
 func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
-	if p.shootCooldown.IsReady() && len(p.bullets) < maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
+	if p.shootCooldown.IsReady() && len(p.bullets) < p.maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
-		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction, sprites.Small)
+		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction+p.ShootingJitter(), sprites.Small)
 	}
+}
+
+func (p *Player) ToggleGodMode() {
+	if p.godMode {
+		p.godMode = false
+		p.maxSalvo = 3
+		p.shootCooldown.ResetTarget(cooldownTime)
+		p.shootingAccuracy = 1.0
+	} else {
+		p.godMode = true
+		p.maxSalvo = 200
+		p.shootCooldown.ResetTarget(50 * time.Millisecond)
+		p.shootingAccuracy = 0.6
+	}
+}
+
+func (p *Player) ShootingJitter() float64 {
+	return (rand.Float64() - 0.5) * (1 - p.shootingAccuracy)
 }
 
 func (p *Player) SpinOutOfControl() {
@@ -235,7 +260,7 @@ func (p *Player) IsAlive() bool {
 }
 
 func (p *Player) CannotDie() bool {
-	return !p.cannotDieTimer.IsReady()
+	return p.godMode || !p.cannotDieTimer.IsReady()
 }
 
 func (p *Player) Bullets(callback func(bullet *Bullet)) {
