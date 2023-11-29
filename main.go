@@ -5,6 +5,8 @@ import (
 	"asteroids/internal/entity"
 	"asteroids/internal/geometry"
 	"errors"
+	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -22,6 +24,10 @@ type Game struct {
 
 var screenSize = geometry.Dimension{W: 1024, H: 768}
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func (g *Game) Update() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
@@ -34,7 +40,7 @@ func (g *Game) Update() error {
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		g.Reset(10)
+		g.Reset(6)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
@@ -68,7 +74,6 @@ func (g *Game) Update() error {
 	if err != nil {
 		return err
 	}
-
 
 	err = g.Level.Update()
 	if err != nil {

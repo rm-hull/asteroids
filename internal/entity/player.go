@@ -2,18 +2,20 @@ package entity
 
 import (
 	"asteroids/internal"
+	"asteroids/internal/fonts"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"fmt"
 	"image"
+	"image/color"
 	"math"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
 type Player struct {
@@ -75,13 +77,17 @@ func (p *Player) CurrentPosition() *geometry.Vector {
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 0, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 150, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Lives: %d", p.livesLeft), 250, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d", p.score), 350, 0)
+	text.Draw(screen, fmt.Sprintf("LIVES: %d", p.livesLeft), fonts.AsteroidsDisplayFont16, 0, 30, color.White)
+	text.Draw(screen, fmt.Sprintf("SCORE: %d", p.score), fonts.AsteroidsDisplayFont16, 350, 30, color.White)
 
 	if p.livesLeft == 0 {
-		ebitenutil.DebugPrintAt(screen, "GAME OVER", screen.Bounds().Dx()/2, screen.Bounds().Dy()/2)
+		message := "GAME OVER"
+		rect := text.BoundString(fonts.AsteroidsDisplayFont32, message)
+
+		x := int(p.bounds.W-float64(rect.Dx())) / 2
+		y := int(p.bounds.H-float64(rect.Dy())) / 2
+
+		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
 		return
 	}
 

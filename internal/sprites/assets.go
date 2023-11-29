@@ -1,7 +1,8 @@
 package sprites
 
 import (
-	"embed"
+	"asteroids/resources/images"
+	"bytes"
 	"image"
 	_ "image/png"
 	"math/rand"
@@ -9,19 +10,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-//go:embed assets/asteroids-2x.png
-var assets embed.FS
+var spriteSheet = mustLoadImage(images.Asteroids2X_png)
 
-var spriteSheet = mustLoadImage("assets/asteroids-2x.png")
-
-func mustLoadImage(name string) *ebiten.Image {
-	f, err := assets.Open(name)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	img, _, err := image.Decode(f)
+func mustLoadImage(b []byte) *ebiten.Image {
+	r := bytes.NewReader(b)
+	img, _, err := image.Decode(r)
 	if err != nil {
 		panic(err)
 	}
