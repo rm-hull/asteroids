@@ -16,6 +16,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
 )
 
 type Player struct {
@@ -82,10 +83,12 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	if p.livesLeft == 0 {
 		message := "GAME OVER"
-		rect := text.BoundString(fonts.AsteroidsDisplayFont32, message)
+		bounds, _ := font.BoundString(fonts.AsteroidsDisplayFont32, message)
+		dx := float64(bounds.Max.X.Round() - bounds.Min.X.Round())
+		dy := float64(bounds.Max.Y.Round() - bounds.Min.Y.Round())
 
-		x := int(p.bounds.W-float64(rect.Dx())) / 2
-		y := int(p.bounds.H-float64(rect.Dy())) / 2
+		x := int(p.bounds.W-dx) / 2
+		y := int(p.bounds.H-dy) / 2
 
 		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
 		return

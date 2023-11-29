@@ -5,8 +5,6 @@ import (
 	"asteroids/internal/entity"
 	"asteroids/internal/geometry"
 	"errors"
-	"math/rand"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -23,10 +21,6 @@ type Game struct {
 }
 
 var screenSize = geometry.Dimension{W: 1024, H: 768}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func (g *Game) Update() error {
 

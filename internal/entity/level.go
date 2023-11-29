@@ -11,6 +11,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
 )
 
 type Level struct {
@@ -66,10 +67,12 @@ func (l *Level) Reset(level int) {
 	l.current = level
 
 	l.message = fmt.Sprintf("LEVEL %d", l.current)
-	rect := text.BoundString(fonts.AsteroidsDisplayFont32, l.message)
+	bounds, _ := font.BoundString(fonts.AsteroidsDisplayFont32, l.message)
+	dx := float64(bounds.Max.X.Round() - bounds.Min.X.Round())
+	dy := float64(bounds.Max.Y.Round() - bounds.Min.Y.Round())
 
-	l.position.X = (l.bounds.W - float64(rect.Dx())) / 2
-	l.position.Y = (l.bounds.H - float64(rect.Dy())) / 2
+	l.position.X = (l.bounds.W - dx) / 2
+	l.position.Y = (l.bounds.H - dy) / 2
 
 	l.timer.Reset()
 }
