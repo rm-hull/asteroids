@@ -16,12 +16,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font"
 )
 
 type Player struct {
 	position         geometry.Vector
 	velocity         geometry.Vector
+	centre           geometry.Vector
 	direction        float64
 	speed            float64
 	sprite           *ebiten.Image
@@ -41,28 +43,25 @@ type Player struct {
 const numLives = 3
 const maxSpeed = 5.0
 const blastRadius = 40.0
-
-var spaceshipWidth = sprites.SpaceShip1.Bounds().Dx()
-var spaceshipHeight = sprites.SpaceShip1.Bounds().Dy()
-
-var spaceshipHalfW = float64(spaceshipWidth / 2)
-var spaceshipHalfH = float64(spaceshipHeight / 2)
-
 const deathDuration = 2 * time.Second
 const cannotDieDuration = 3 * time.Second
 const cooldownTime = 100 * time.Millisecond
 
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
+	sprite := sprites.SpaceShip1
+	centre := sprites.Centre(sprite)
+
 	return &Player{
 		direction: 0,
 		speed:     0,
 		position: geometry.Vector{
-			X: screenBounds.W/2 - spaceshipHalfW,
-			Y: screenBounds.H/2 - spaceshipHalfH,
+			X: screenBounds.W/2 - centre.X,
+			Y: screenBounds.H/2 - centre.Y,
 		},
+		centre:           centre,
 		cannotDieTimer:   internal.NewTimer(cannotDieDuration),
 		shootCooldown:    internal.NewTimer(cooldownTime),
-		sprite:           sprites.SpaceShip1,
+		sprite:           sprite,
 		bounds:           screenBounds,
 		livesLeft:        numLives,
 		score:            0,
@@ -100,9 +99,9 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	cm := colorm.ColorM{}
 	op := &colorm.DrawImageOptions{}
-	op.GeoM.Translate(-spaceshipHalfW, -spaceshipHalfH)
+	op.GeoM.Translate(-p.centre.X, -p.centre.Y)
 	op.GeoM.Rotate(p.direction)
-	op.GeoM.Translate(spaceshipHalfW, spaceshipHalfH)
+	op.GeoM.Translate(p.centre.X, p.centre.Y)
 
 	op.GeoM.Translate(p.position.X, p.position.Y)
 
@@ -114,13 +113,14 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
+	vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.centre.Y*0.6), color.RGBA{255, 128, 0, 255}, false)
 	colorm.DrawImage(screen, p.sprite, cm, op)
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
 	return &geometry.Vector{
-		X: p.position.X + spaceshipHalfW + (math.Cos(p.direction) * blastRadius),
-		Y: p.position.Y + spaceshipHalfH + (math.Sin(p.direction) * blastRadius),
+		X: p.position.X + p.centre.X + (math.Cos(p.direction) * blastRadius),
+		Y: p.position.Y + p.centre.Y + (math.Sin(p.direction) * blastRadius),
 	}
 }
 
@@ -152,10 +152,11 @@ func (p *Player) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
 		p.ToggleGodMode()
 	}
+	bounds := p.sprite.Bounds()
 
 	p.cannotDieTimer.Update()
 	p.position.Add(&p.velocity)
-	p.position.CheckEdges(p.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
+	p.position.CheckEdges(p.bounds, float64(bounds.Dx()), float64(bounds.Dy()))
 
 	return nil
 }
@@ -228,8 +229,8 @@ func (p *Player) Reset() {
 	p.speed = 0
 	p.velocity.X = 0
 	p.velocity.Y = 0
-	p.position.X = p.bounds.W/2 - spaceshipHalfW
-	p.position.Y = p.bounds.H/2 - spaceshipHalfW
+	p.position.X = p.bounds.W/2 - p.centre.X
+	p.position.Y = p.bounds.H/2 - p.centre.Y
 	p.sprite = sprites.SpaceShip1
 	p.cannotDieTimer.Reset()
 	p.livesLeft--

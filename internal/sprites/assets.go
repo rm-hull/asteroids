@@ -1,6 +1,7 @@
 package sprites
 
 import (
+	"asteroids/internal/geometry"
 	"asteroids/resources/images"
 	"bytes"
 	"image"
@@ -82,5 +83,13 @@ func Bullet(size int) *ebiten.Image {
 		return Bullet2
 	default:
 		return Bullet1
+	}
+}
+
+func Centre(sprite *ebiten.Image) geometry.Vector {
+	bounds := sprite.Bounds()
+	return geometry.Vector{
+		X: float64(bounds.Dx()) / 2,
+		Y: float64(bounds.Dy()) / 2,
 	}
 }

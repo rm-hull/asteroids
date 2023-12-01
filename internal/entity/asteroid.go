@@ -5,13 +5,13 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"image"
+	"image/color"
 
-	// "image/color"
 	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	// "github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const asteroidMaxSpeed = 2
@@ -20,6 +20,7 @@ type Asteroid struct {
 	size      int
 	position  geometry.Vector
 	velocity  geometry.Vector
+	centre    geometry.Vector
 	rotation  float64
 	direction float64
 	bounds    *geometry.Dimension
@@ -53,32 +54,28 @@ func NewAsteroid(size int, position *geometry.Vector, screenBounds *geometry.Dim
 
 	direction := rand.Float64() * 2 * math.Pi
 	speed := rand.Float64() * asteroidMaxSpeed
+	sprite := sprites.Asteroid(size)
 
 	return &Asteroid{
 		size:     size,
 		position: *position,
+		centre:   sprites.Centre(sprite),
 		velocity: geometry.VectorFrom(direction, speed),
 		rotation: (rand.Float64() - 0.5) / 20,
 		bounds:   screenBounds,
-		sprite:   sprites.Asteroid(size),
+		sprite:   sprite,
 	}
 }
 
 func (a *Asteroid) Draw(screen *ebiten.Image) {
-	bounds := a.sprite.Bounds()
-	halfW := float64(bounds.Dx()) / 2
-	halfH := float64(bounds.Dy()) / 2
-
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-halfW, -halfH)
+	op.GeoM.Translate(-a.centre.X, -a.centre.Y)
 	op.GeoM.Rotate(a.direction)
-	op.GeoM.Translate(halfW, halfH)
+	op.GeoM.Translate(a.centre.X, a.centre.Y)
 
 	op.GeoM.Translate(a.position.X, a.position.Y)
 
-	// bounds := a.Bounds()
-	// ebitenutil.DrawRect(screen, float64(bounds.Min.X), float64(bounds.Min.Y), float64(bounds.Dx()), float64(bounds.Dy()), color.RGBA{67, 0, 255, 255})
-	// ebitenutil.DrawCircle(screen, a.position.X+halfW, a.position.Y+halfH, halfH*0.75, color.RGBA{0, 128, 255, 128})
+	vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.centre.Y*0.7), color.RGBA{0, 128, 255, 128}, false)
 
 	screen.DrawImage(a.sprite, op)
 }

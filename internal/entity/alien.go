@@ -5,16 +5,19 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"image"
+	"image/color"
 	"math"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Alien struct {
 	position         geometry.Vector
 	velocity         geometry.Vector
+	centre           geometry.Vector
 	direction        float64
 	sprite           *ebiten.Image
 	bounds           *geometry.Dimension
@@ -34,6 +37,7 @@ func NewAlien(level int, position *geometry.Vector, playerPosition *geometry.Vec
 		direction:        0,
 		position:         *position,
 		sprite:           sprites.AlienSpaceShip,
+		centre:           sprites.Centre(sprites.AlienSpaceShip),
 		bounds:           screenBounds,
 		respawnTimer:     internal.NewTimer(respawnDuration),
 		shootCooldown:    internal.NewTimer(5 * time.Second),
@@ -53,6 +57,8 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 	if a.respawnTimer.IsReady() {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(a.position.X, a.position.Y)
+
+		vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.centre.Y*0.75), color.RGBA{128, 128, 0, 255}, false)
 
 		screen.DrawImage(a.sprite, op)
 	}
@@ -76,7 +82,7 @@ func (a *Alien) Update() error {
 		a.HandleShooting()
 
 		a.position.Add(&a.velocity)
-		a.position.CheckEdges(a.bounds, float64(spaceshipWidth), float64(spaceshipHeight))
+		a.position.CheckEdges(a.bounds, a.centre.X, a.centre.Y)
 	}
 	return nil
 }
@@ -114,14 +120,10 @@ func (a *Alien) HandleShooting() {
 		duration := randomDuration(1*time.Second, 8*time.Second)
 		a.shootCooldown.ResetTarget(duration)
 
-		bounds := a.sprite.Bounds()
-		halfW := float64(bounds.Dx()) / 2
-		halfH := float64(bounds.Dy()) / 2
-
 		direction := a.position.AngleTo(a.playerPosition) + a.ShootingJitter()
 		spawnPosn := &geometry.Vector{
-			X: a.position.X + halfW + (math.Cos(direction) * 60),
-			Y: a.position.Y + halfH + (math.Sin(direction) * 60),
+			X: a.position.X + a.centre.X + (math.Cos(direction) * 60),
+			Y: a.position.Y + a.centre.Y + (math.Sin(direction) * 60),
 		}
 		a.bullets[a.sequence.GetNext()] = NewBullet(a.bounds, spawnPosn, direction, sprites.Large)
 	}

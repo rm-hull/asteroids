@@ -14,6 +14,7 @@ import (
 type Bullet struct {
 	position  geometry.Vector
 	velocity  geometry.Vector
+	centre    geometry.Vector
 	direction float64
 	bounds    *geometry.Dimension
 	sprite    *ebiten.Image
@@ -23,15 +24,15 @@ type Bullet struct {
 
 func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64, size int) *Bullet {
 	bulletSpeed := float64(480 / ebiten.TPS())
-	bounds := sprites.Bullet1.Bounds()
-	halfW := float64(bounds.Dx() / 2)
-	halfH := float64(bounds.Dy() / 2)
+	sprite := sprites.Bullet(size)
+	centre := sprites.Centre(sprite)
 
 	return &Bullet{
 		direction: direction,
-		position:  geometry.Vector{X: position.X - halfW, Y: position.Y - halfH},
+		position:  geometry.Vector{X: position.X - centre.X, Y: position.Y - centre.Y},
 		velocity:  geometry.VectorFrom(direction, bulletSpeed),
-		sprite:    sprites.Bullet(size),
+		centre:    centre,
+		sprite:    sprite,
 		bounds:    screenBounds,
 		timer:     internal.NewTimer(2 * time.Second),
 	}
