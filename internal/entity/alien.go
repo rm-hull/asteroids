@@ -4,13 +4,11 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
-	"image/color"
 	"math"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Alien struct {
@@ -57,7 +55,7 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(a.position.X, a.position.Y)
 
-		vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{128, 128, 0, 255}, false)
+		// vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{128, 128, 0, 255}, false)
 
 		screen.DrawImage(a.sprite, op)
 	}

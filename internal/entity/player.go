@@ -15,7 +15,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font"
 )
 
@@ -112,7 +111,7 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
-	vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.Size()), color.RGBA{255, 128, 0, 255}, false)
+	// vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.Size()), color.RGBA{255, 128, 0, 255}, false)
 	colorm.DrawImage(screen, p.sprite, cm, op)
 }
 
