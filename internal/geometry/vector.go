@@ -21,10 +21,6 @@ func (v *Vector) Magnitude() float64 {
 	return v.DistanceFrom(&Zero)
 }
 
-func (v *Vector) DotProduct(other *Vector) float64 {
-	return v.X*other.X + v.Y*other.Y
-}
-
 func (v Vector) String() string {
 	return fmt.Sprintf("%0.1f,%0.1f", v.X, v.Y)
 }
@@ -39,10 +35,18 @@ func (v *Vector) AngleTo(other *Vector) float64 {
 	return signedAngle
 }
 
-func (v *Vector) DistanceFrom(other *Vector) float64 {
+func (v *Vector) SquareDistanceFrom(other *Vector) float64 {
 	dx := v.X - other.X
 	dy := v.Y - other.Y
-	return math.Sqrt(dx*dx + dy*dy)
+	return (dx*dx + dy*dy)
+}
+
+func (v *Vector) DistanceFrom(other *Vector) float64 {
+	return math.Sqrt(v.SquareDistanceFrom(other))
+}
+
+func Add(a, b *Vector) *Vector {
+	return &Vector{X: a.X + b.X, Y: a.Y + b.Y}
 }
 
 func (v *Vector) Add(other *Vector) {

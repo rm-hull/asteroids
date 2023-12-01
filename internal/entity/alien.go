@@ -4,7 +4,6 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
-	"image"
 	"image/color"
 	"math"
 	"math/rand"
@@ -58,7 +57,7 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(a.position.X, a.position.Y)
 
-		vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.centre.Y*0.75), color.RGBA{128, 128, 0, 255}, false)
+		vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{128, 128, 0, 255}, false)
 
 		screen.DrawImage(a.sprite, op)
 	}
@@ -137,12 +136,12 @@ func (a *Alien) Value() int {
 	return 1000
 }
 
-func (a *Alien) Bounds() *image.Rectangle {
-	point := image.Point{X: int(a.position.X), Y: int(a.position.Y)}
-	return &image.Rectangle{
-		Min: point,
-		Max: a.sprite.Bounds().Max.Add(point),
-	}
+func (a *Alien) Position() *geometry.Vector {
+	return geometry.Add(&a.position, &a.centre)
+}
+
+func (a *Alien) Size() float64 {
+	return a.centre.Y * 0.75
 }
 
 func (a *Alien) Kill() {

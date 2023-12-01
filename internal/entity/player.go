@@ -6,7 +6,6 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"fmt"
-	"image"
 	"image/color"
 	"math"
 	"math/rand"
@@ -113,7 +112,7 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		cm.Scale(1.0, 1.0, 1.0, fade)
 	}
 
-	vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.centre.Y*0.6), color.RGBA{255, 128, 0, 255}, false)
+	vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.Size()), color.RGBA{255, 128, 0, 255}, false)
 	colorm.DrawImage(screen, p.sprite, cm, op)
 }
 
@@ -244,14 +243,14 @@ func (p *Player) Kill() {
 }
 
 func (p *Player) NotNear() *geometry.Vector {
-	halfH := p.bounds.H / 3
+	sqHalfH := math.Pow(p.bounds.H/3, 2)
 	for {
 		position := geometry.Vector{
 			X: rand.Float64() * p.bounds.W,
 			Y: rand.Float64() * p.bounds.H,
 		}
 
-		if p.position.DistanceFrom(&position) > halfH {
+		if p.position.SquareDistanceFrom(&position) > sqHalfH {
 			return &position
 		}
 	}
@@ -279,10 +278,10 @@ func (p *Player) Bullets(callback func(bullet *Bullet)) {
 	}
 }
 
-func (p *Player) Bounds() *image.Rectangle {
-	point := image.Point{X: int(p.position.X), Y: int(p.position.Y)}
-	return &image.Rectangle{
-		Min: point,
-		Max: p.sprite.Bounds().Max.Add(point),
-	}
+func (p *Player) Size() float64 {
+	return p.centre.Y * 0.65
+}
+
+func (p *Player) Position() *geometry.Vector {
+	return geometry.Add(&p.position, &p.centre)
 }

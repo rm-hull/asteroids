@@ -104,12 +104,12 @@ func (g *Game) HandleCollisionDetection() {
 	})
 
 	for _, asteroid := range g.Asteroids {
-		if g.Player.IsAlive() && asteroid.CollisionDetected(g.Player) {
+		if g.Player.IsAlive() && entity.CollisionDetected(asteroid, g.Player) {
 			g.Player.Kill()
 		}
 	}
 
-	if g.Player.IsAlive() && g.Alien.IsAlive() && g.Alien.Bounds().Overlaps(*g.Player.Bounds()) {
+	if g.Player.IsAlive() && g.Alien.IsAlive() && entity.CollisionDetected(g.Alien, g.Player) {
 		g.Player.Kill()
 	}
 

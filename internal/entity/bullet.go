@@ -4,7 +4,6 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
-	"image"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -51,8 +50,6 @@ func (b *Bullet) Draw(screen *ebiten.Image) {
 		fade := ((1.0 - pctComplete) / 0.25)
 		cm.Scale(1, 1, 1, fade)
 	}
-	// bounds2 := b.Bounds()
-	// ebitenutil.DrawRect(screen, float64(bounds2.Min.X), float64(bounds2.Min.Y), float64(bounds2.Dx()), float64(bounds2.Dy()), color.RGBA{128, 255, 0, 88})
 
 	colorm.DrawImage(screen, b.sprite, cm, op)
 }
@@ -69,17 +66,17 @@ func (b *Bullet) IsExpired() bool {
 	return b.directHit || b.timer.IsReady()
 }
 
-func (b *Bullet) Bounds() *image.Rectangle {
-	point := image.Point{X: int(b.position.X), Y: int(b.position.Y)}
-	return &image.Rectangle{
-		Min: point,
-		Max: b.sprite.Bounds().Max.Add(point),
-	}
+func (b *Bullet) Position() *geometry.Vector {
+	return geometry.Add(&b.position, &b.centre)
 }
 
-func (b *Bullet) CollisionDetected(bounder Bounder) bool {
+func (b *Bullet) Size() float64 {
+	return b.centre.X / 2
+}
+
+func (b *Bullet) CollisionDetected(collider Collider) bool {
 	if b.timer.PercentComplete() < 90 {
-		if hit := b.Bounds().In(*bounder.Bounds()); hit {
+		if hit := CollisionDetected(b, collider); hit {
 			b.directHit = true
 			return true
 		}
