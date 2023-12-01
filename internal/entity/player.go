@@ -139,17 +139,17 @@ func (p *Player) Update() error {
 		}
 	}
 
-	if p.deadTimer != nil {
+	if p.IsDying() {
 		p.SpinOutOfControl()
 	} else {
 		p.HandleMovement()
+		p.HandleShooting()
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+			p.ToggleGodMode()
+		}
 	}
 
-	p.HandleShooting()
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
-		p.ToggleGodMode()
-	}
 	bounds := p.sprite.Bounds()
 
 	p.cannotDieTimer.Update()
