@@ -69,10 +69,9 @@ func (v *Vector) Mod(bounds *Dimension) *Vector {
 	return v
 }
 
-func VectorFrom(direction float64, speed float64) *Vector {
+func VectorFrom(direction float64, magnitude float64) *Vector {
 	return &Vector{
-		X: speed * math.Cos(direction),
-		Y: speed * math.Sin(direction),
+		X: magnitude * math.Cos(direction),
+		Y: magnitude * math.Sin(direction),
 	}
 }
-

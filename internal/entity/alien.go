@@ -5,7 +5,6 @@ import (
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
 	"asteroids/resources/soundfx"
-	"math"
 	"math/rand"
 	"time"
 
@@ -78,7 +77,7 @@ func (a *Alien) Update() error {
 }
 
 func (a *Alien) HandleMovement() {
-	delta := rand.Float64() - 0.3
+	delta := (rand.Float64() - 0.5) * 0.6
 	a.sprite.Direction += delta
 
 	thrusting := rand.Float64() > 0.3
@@ -102,11 +101,11 @@ func (a *Alien) HandleShooting() {
 		a.shootCooldown.ResetTarget(duration)
 
 		direction := a.sprite.Position.AngleTo(a.playerPosition()) + a.ShootingJitter()
-		spawnPosn := &geometry.Vector{
-			X: a.sprite.Position.X + a.sprite.Centre.X + (math.Cos(direction) * 60),
-			Y: a.sprite.Position.Y + a.sprite.Centre.Y + (math.Sin(direction) * 60),
-		}
+		spawnPosn := geometry.Add(a.sprite.Position, geometry.VectorFrom(direction, 60))
 		a.bullets[a.sequence.GetNext()] = NewBullet(a.screenBounds, spawnPosn, direction, sprites.Large)
+
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot2)
+		sfxPlayer.Play()
 	}
 }
 

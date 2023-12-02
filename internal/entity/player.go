@@ -99,13 +99,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	p.sprite.Draw(screen)
 }
 
-func (p *Player) NoseTip() *geometry.Vector {
-	return &geometry.Vector{
-		X: p.sprite.Position.X + p.sprite.Centre.X + (math.Cos(p.sprite.Direction) * blastRadius),
-		Y: p.sprite.Position.Y + p.sprite.Centre.Y + (math.Sin(p.sprite.Direction) * blastRadius),
-	}
-}
-
 func (p *Player) Update() error {
 	if p.livesLeft == 0 {
 		// TODO: Update game state
@@ -165,9 +158,12 @@ func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
 	if p.shootCooldown.IsReady() && len(p.bullets) < p.maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
-		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, p.NoseTip(), p.sprite.Direction+p.ShootingJitter(), sprites.Small)
 
-		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot)
+		direction := p.sprite.Direction + p.ShootingJitter()
+		spawnPosn := geometry.Add(p.Position(), geometry.VectorFrom(p.sprite.Direction, blastRadius))
+		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, spawnPosn, direction, sprites.Small)
+
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot1)
 		sfxPlayer.Play()
 	}
 }
@@ -197,7 +193,6 @@ func (p *Player) SpinOutOfControl() {
 	if p.deadTimer.IsReady() {
 		p.Prepare()
 		p.livesLeft--
-
 	}
 }
 
@@ -224,7 +219,7 @@ func (p *Player) Kill() {
 }
 
 func (p *Player) NotNear() *geometry.Vector {
-	sqHalfH := math.Pow(p.screenBounds.H/3, 2)
+	sqHalfH := math.Pow(p.screenBounds.H/2, 2)
 	for {
 		position := geometry.Vector{
 			X: rand.Float64() * p.screenBounds.W,
