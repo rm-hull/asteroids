@@ -4,6 +4,7 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
+	"asteroids/resources/soundfx"
 	"math"
 	"math/rand"
 	"time"
@@ -144,6 +145,9 @@ func (a *Alien) Size() float64 {
 
 func (a *Alien) Kill() {
 	a.respawnTimer.Reset()
+	sePlayer := audioContext.NewPlayerFromBytes(soundfx.Explosion2)
+	sePlayer.SetVolume(0.15)
+	sePlayer.Play()
 }
 
 func (a *Alien) IsAlive() bool {
