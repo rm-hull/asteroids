@@ -13,29 +13,25 @@ import (
 )
 
 type Alien struct {
-	position         geometry.Vector
-	velocity         geometry.Vector
-	centre           geometry.Vector
-	direction        float64
-	sprite           *ebiten.Image
+	sprite           *sprites.Sprite
 	screenBounds     *geometry.Dimension
 	respawnTimer     *internal.Timer
 	shootCooldown    *internal.Timer
 	bullets          map[int]*Bullet
 	sequence         *internal.Sequence
-	playerPosition   *geometry.Vector
+	playerPosition   func() *geometry.Vector
 	shootingAccuracy float64
 	maxSalvo         int
 }
 
 const respawnDuration = 30 * time.Second
 
-func NewAlien(level int, position *geometry.Vector, playerPosition *geometry.Vector, screenBounds *geometry.Dimension) *Alien {
+func NewAlien(level int, position *geometry.Vector, playerPosition func() *geometry.Vector, screenBounds *geometry.Dimension) *Alien {
+	sprite := sprites.NewSprite(screenBounds, sprites.AlienSpaceShip, true)
+	sprite.Position = position
+
 	return &Alien{
-		direction:        0,
-		position:         *position,
-		sprite:           sprites.AlienSpaceShip,
-		centre:           sprites.Centre(sprites.AlienSpaceShip),
+		sprite:           sprite,
 		screenBounds:     screenBounds,
 		respawnTimer:     internal.NewTimer(respawnDuration),
 		shootCooldown:    internal.NewTimer(5 * time.Second),
@@ -53,23 +49,7 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 	}
 
 	if a.respawnTimer.IsReady() {
-		op := &ebiten.DrawImageOptions{}
-		// vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{128, 128, 0, 255}, false)
-
-		op.GeoM.Translate(a.position.X, a.position.Y)
-		screen.DrawImage(a.sprite, op)
-	
-		op.GeoM.Translate(a.screenBounds.W, 0)
-		screen.DrawImage(a.sprite, op)
-	
-		op.GeoM.Translate(-a.screenBounds.W, +a.screenBounds.H)
-		screen.DrawImage(a.sprite, op)
-	
-		op.GeoM.Translate(-a.screenBounds.W, -a.screenBounds.H)
-		screen.DrawImage(a.sprite, op)
-	
-		op.GeoM.Translate(+a.screenBounds.W, -a.screenBounds.H)
-		screen.DrawImage(a.sprite, op)
+		a.sprite.Draw(screen)
 	}
 }
 
@@ -90,28 +70,28 @@ func (a *Alien) Update() error {
 		a.HandleMovement()
 		a.HandleShooting()
 
-		a.position.Add(&a.velocity)
-		a.position.CheckEdges(a.screenBounds, sprites.Size(a.sprite))
+		if err := a.sprite.Update(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (a *Alien) HandleMovement() {
 	delta := rand.Float64() - 0.3
-	a.direction += delta
+	a.sprite.Direction += delta
 
 	thrusting := rand.Float64() > 0.3
 	if thrusting {
-		newVector := geometry.VectorFrom(a.direction, 0.3)
-		newVector.Add(&a.velocity)
+		newVector := geometry.VectorFrom(a.sprite.Direction, 0.3)
+		newVector.Add(a.sprite.Velocity)
 		speed := newVector.Magnitude()
 
-		if speed < maxSpeed {
-			a.velocity = newVector
-		} else {
+		if speed >= maxSpeed {
 			newVector.Scale(maxSpeed / speed)
-			a.velocity = newVector
 		}
+		a.sprite.Velocity.X = newVector.X
+		a.sprite.Velocity.Y = newVector.Y
 	}
 }
 
@@ -129,10 +109,10 @@ func (a *Alien) HandleShooting() {
 		duration := randomDuration(1*time.Second, 8*time.Second)
 		a.shootCooldown.ResetTarget(duration)
 
-		direction := a.position.AngleTo(a.playerPosition) + a.ShootingJitter()
+		direction := a.sprite.Position.AngleTo(a.playerPosition()) + a.ShootingJitter()
 		spawnPosn := &geometry.Vector{
-			X: a.position.X + a.centre.X + (math.Cos(direction) * 60),
-			Y: a.position.Y + a.centre.Y + (math.Sin(direction) * 60),
+			X: a.sprite.Position.X + a.sprite.Centre.X + (math.Cos(direction) * 60),
+			Y: a.sprite.Position.Y + a.sprite.Centre.Y + (math.Sin(direction) * 60),
 		}
 		a.bullets[a.sequence.GetNext()] = NewBullet(a.screenBounds, spawnPosn, direction, sprites.Large)
 	}
@@ -147,11 +127,11 @@ func (a *Alien) Value() int {
 }
 
 func (a *Alien) Position() *geometry.Vector {
-	return geometry.Add(&a.position, &a.centre)
+	return geometry.Add(a.sprite.Position, a.sprite.Centre).Mod(a.screenBounds)
 }
 
 func (a *Alien) Size() float64 {
-	return a.centre.Y * 0.75
+	return a.sprite.Centre.Y * 0.75
 }
 
 func (a *Alien) Kill() {

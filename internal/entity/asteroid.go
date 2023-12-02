@@ -15,15 +15,10 @@ import (
 const asteroidMaxSpeed = 2
 
 type Asteroid struct {
+	sprite       *sprites.Sprite
 	size         int
-	position     geometry.Vector
-	velocity     geometry.Vector
-	centre       geometry.Vector
-	rotation     float64
-	direction    float64
-	screenBounds *geometry.Dimension
-	sprite       *ebiten.Image
 	exploded     bool
+	screenBounds *geometry.Dimension
 }
 
 func randSize() int {
@@ -50,49 +45,34 @@ func NewAsteroidBelt(n int, seq *internal.Sequence, player *Player, screenBounds
 
 func NewAsteroid(size int, position *geometry.Vector, screenBounds *geometry.Dimension) *Asteroid {
 
-	direction := rand.Float64() * 2 * math.Pi
-	speed := rand.Float64() * asteroidMaxSpeed
-	sprite := sprites.Asteroid(size)
+	sprite := sprites.NewSprite(screenBounds, sprites.Asteroid(size), true)
+	sprite.Speed = rand.Float64() * asteroidMaxSpeed
+	sprite.Direction = rand.Float64() * 2 * math.Pi
+	sprite.Position.X = position.X
+	sprite.Position.Y = position.Y
+	sprite.Velocity = geometry.VectorFrom(sprite.Direction, sprite.Speed)
+	sprite.Rotation = (rand.Float64() - 0.5) / 20
 
 	return &Asteroid{
-		size:         size,
-		position:     *position,
-		centre:       sprites.Centre(sprite),
-		velocity:     geometry.VectorFrom(direction, speed),
-		rotation:     (rand.Float64() - 0.5) / 20,
-		screenBounds: screenBounds,
 		sprite:       sprite,
+		size:         size,
+		exploded:     false,
+		screenBounds: screenBounds,
 	}
 }
 
 func (a *Asteroid) Draw(screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-a.centre.X, -a.centre.Y)
-	op.GeoM.Rotate(a.direction)
-	op.GeoM.Translate(a.centre.X, a.centre.Y)
-
-	// vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{0, 128, 255, 128}, false)
-
-	op.GeoM.Translate(a.position.X, a.position.Y)
-	screen.DrawImage(a.sprite, op)
-
-	op.GeoM.Translate(a.screenBounds.W, 0)
-	screen.DrawImage(a.sprite, op)
-
-	op.GeoM.Translate(-a.screenBounds.W, +a.screenBounds.H)
-	screen.DrawImage(a.sprite, op)
-
-	op.GeoM.Translate(-a.screenBounds.W, -a.screenBounds.H)
-	screen.DrawImage(a.sprite, op)
-
-	op.GeoM.Translate(+a.screenBounds.W, -a.screenBounds.H)
-	screen.DrawImage(a.sprite, op)
+	if !a.exploded {
+		a.sprite.Draw(screen)
+	}
 }
 
 func (a *Asteroid) Update() error {
-	a.direction += a.rotation
-	a.position.Add(&a.velocity)
-	a.position.CheckEdges(a.screenBounds, sprites.Size(a.sprite))
+	if !a.exploded {
+		if err := a.sprite.Update(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -107,16 +87,16 @@ func (a *Asteroid) Explode() []*Asteroid {
 	case sprites.Large:
 		n := rand.Intn(2) + 1
 		for i := 0; i < n; i++ {
-			arr = append(arr, NewAsteroid(sprites.Medium, &a.position, a.screenBounds))
+			arr = append(arr, NewAsteroid(sprites.Medium, a.sprite.Position, a.screenBounds))
 		}
 		n = rand.Intn(4 - n)
 		for i := 0; i < n; i++ {
-			arr = append(arr, NewAsteroid(sprites.Small, &a.position, a.screenBounds))
+			arr = append(arr, NewAsteroid(sprites.Small, a.sprite.Position, a.screenBounds))
 		}
 	case sprites.Medium:
 		n := rand.Intn(2) + 2
 		for i := 0; i < n; i++ {
-			arr = append(arr, NewAsteroid(sprites.Small, &a.position, a.screenBounds))
+			arr = append(arr, NewAsteroid(sprites.Small, a.sprite.Position, a.screenBounds))
 		}
 	default:
 		break
@@ -142,9 +122,9 @@ func (a *Asteroid) Value() int {
 }
 
 func (a *Asteroid) Size() float64 {
-	return a.centre.Y * 0.70
+	return a.sprite.Centre.Y * 0.70
 }
 
 func (a *Asteroid) Position() *geometry.Vector {
-	return geometry.Add(&a.position, &a.centre)
+	return geometry.Add(a.sprite.Position, a.sprite.Centre).Mod(a.screenBounds)
 }

@@ -16,7 +16,7 @@ import (
 
 type Level struct {
 	position geometry.Vector
-	velocity geometry.Vector
+	velocity *geometry.Vector
 	timer    *internal.Timer
 	bounds   *geometry.Dimension
 	message  string
@@ -44,7 +44,7 @@ func (l *Level) Draw(screen *ebiten.Image) {
 func (l *Level) Update() error {
 	l.timer.Update()
 	if !l.IsExpired() {
-		l.position.Add(&l.velocity)
+		l.position.Add(l.velocity)
 	}
 	return nil
 }

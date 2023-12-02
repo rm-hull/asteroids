@@ -7,33 +7,28 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/colorm"
 )
 
 type Bullet struct {
-	position  geometry.Vector
-	velocity  geometry.Vector
-	centre    geometry.Vector
-	direction float64
-	bounds    *geometry.Dimension
-	sprite    *ebiten.Image
-	timer     *internal.Timer
-	directHit bool
+	sprite       *sprites.Sprite
+	timer        *internal.Timer
+	screenBounds *geometry.Dimension
+	directHit    bool
 }
 
 func NewBullet(screenBounds *geometry.Dimension, position *geometry.Vector, direction float64, size int) *Bullet {
 	bulletSpeed := float64(480 / ebiten.TPS())
-	sprite := sprites.Bullet(size)
-	centre := sprites.Centre(sprite)
+	sprite := sprites.NewSprite(screenBounds, sprites.Bullet(size), false)
+	sprite.Direction = direction
+	sprite.Position.X = position.X - sprite.Centre.X
+	sprite.Position.Y = position.Y - sprite.Centre.Y
+	sprite.Velocity = geometry.VectorFrom(direction, bulletSpeed)
 
 	return &Bullet{
-		direction: direction,
-		position:  geometry.Vector{X: position.X - centre.X, Y: position.Y - centre.Y},
-		velocity:  geometry.VectorFrom(direction, bulletSpeed),
-		centre:    centre,
-		sprite:    sprite,
-		bounds:    screenBounds,
-		timer:     internal.NewTimer(2 * time.Second),
+		sprite:       sprite,
+		timer:        internal.NewTimer(2 * time.Second),
+		screenBounds: screenBounds,
+		directHit:    false,
 	}
 }
 
@@ -42,22 +37,20 @@ func (b *Bullet) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	cm := colorm.ColorM{}
-	op := &colorm.DrawImageOptions{}
-	op.GeoM.Translate(b.position.X, b.position.Y)
-
 	if pctComplete := b.timer.PercentComplete(); pctComplete > 0.75 {
 		fade := ((1.0 - pctComplete) / 0.25)
-		cm.Scale(1, 1, 1, fade)
+		b.sprite.ColorModel.Scale(1, 1, 1, fade)
 	}
 
-	colorm.DrawImage(screen, b.sprite, cm, op)
+	b.sprite.Draw(screen)
 }
 
 func (b *Bullet) Update() error {
 	b.timer.Update()
 	if !b.IsExpired() {
-		b.position.Add(&b.velocity)
+		if err := b.sprite.Update(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -67,11 +60,11 @@ func (b *Bullet) IsExpired() bool {
 }
 
 func (b *Bullet) Position() *geometry.Vector {
-	return geometry.Add(&b.position, &b.centre)
+	return geometry.Add(b.sprite.Position, b.sprite.Centre)
 }
 
 func (b *Bullet) Size() float64 {
-	return b.centre.X / 2
+	return b.sprite.Centre.X / 2
 }
 
 func (b *Bullet) CollisionDetected(collider Collider) bool {

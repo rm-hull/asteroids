@@ -14,7 +14,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -22,12 +21,7 @@ import (
 )
 
 type Player struct {
-	position         geometry.Vector
-	velocity         geometry.Vector
-	centre           geometry.Vector
-	direction        float64
-	speed            float64
-	sprite           *ebiten.Image
+	sprite           *sprites.Sprite
 	deadTimer        *internal.Timer
 	cannotDieTimer   *internal.Timer
 	shootCooldown    *internal.Timer
@@ -54,20 +48,14 @@ const (
 var audioContext = audio.NewContext(sampleRate)
 
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
-	sprite := sprites.SpaceShip1
-	centre := sprites.Centre(sprite)
+	sprite := sprites.NewSprite(screenBounds, sprites.SpaceShip1, true)
+	sprite.Position.X = screenBounds.W/2 - sprite.Centre.X
+	sprite.Position.Y = screenBounds.H/2 - sprite.Centre.Y
 
 	return &Player{
-		direction: 0,
-		speed:     0,
-		position: geometry.Vector{
-			X: screenBounds.W/2 - centre.X,
-			Y: screenBounds.H/2 - centre.Y,
-		},
-		centre:           centre,
+		sprite:           sprite,
 		cannotDieTimer:   internal.NewTimer(cannotDieDuration),
 		shootCooldown:    internal.NewTimer(cooldownTime),
-		sprite:           sprite,
 		screenBounds:     screenBounds,
 		livesLeft:        numLives,
 		score:            0,
@@ -75,12 +63,8 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 		sequence:         internal.NewSequence(),
 		maxSalvo:         3,
 		shootingAccuracy: 1.0,
-		godMode:          true,
+		godMode:          false,
 	}
-}
-
-func (p *Player) CurrentPosition() *geometry.Vector {
-	return &p.position
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
@@ -104,45 +88,25 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		bullet.Draw(screen)
 	}
 
-	cm := colorm.ColorM{}
-	op := &colorm.DrawImageOptions{}
-	op.GeoM.Translate(-p.centre.X, -p.centre.Y)
-	op.GeoM.Rotate(p.direction)
-	op.GeoM.Translate(p.centre.X, p.centre.Y)
-
 	if p.IsDying() {
 		fade := 1.0 - p.deadTimer.PercentComplete()
-		cm.Scale(1.0, 1.0, 1.0, fade)
+		p.sprite.ColorModel.Scale(1.0, 1.0, 1.0, fade)
 	} else if p.CannotDie() {
 		fade := p.cannotDieTimer.PercentComplete()
-		cm.Scale(1.0, 1.0, 1.0, fade)
+		p.sprite.ColorModel.Scale(1.0, 1.0, 1.0, fade)
 	}
 
-	// vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.Size()), color.RGBA{255, 128, 0, 255}, false)
-	op.GeoM.Translate(p.position.X, p.position.Y)
-	colorm.DrawImage(screen, p.sprite, cm, op)
+	p.sprite.Draw(screen)
 
-	op.GeoM.Translate(p.screenBounds.W, 0)
-	colorm.DrawImage(screen, p.sprite, cm, op)
-
-	op.GeoM.Translate(-p.screenBounds.W, +p.screenBounds.H)
-	colorm.DrawImage(screen, p.sprite, cm, op)
-
-	op.GeoM.Translate(-p.screenBounds.W, -p.screenBounds.H)
-	colorm.DrawImage(screen, p.sprite, cm, op)
-
-	op.GeoM.Translate(+p.screenBounds.W, -p.screenBounds.H)
-	colorm.DrawImage(screen, p.sprite, cm, op)
-
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 500, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 650, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: %v", p.sprite.Position), 500, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.sprite.Speed), 650, 0)
 
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
 	return &geometry.Vector{
-		X: p.position.X + p.centre.X + (math.Cos(p.direction) * blastRadius),
-		Y: p.position.Y + p.centre.Y + (math.Sin(p.direction) * blastRadius),
+		X: p.sprite.Position.X + p.sprite.Centre.X + (math.Cos(p.sprite.Direction) * blastRadius),
+		Y: p.sprite.Position.Y + p.sprite.Centre.Y + (math.Sin(p.sprite.Direction) * blastRadius),
 	}
 }
 
@@ -175,36 +139,40 @@ func (p *Player) Update() error {
 	}
 
 	p.cannotDieTimer.Update()
-	p.position.Add(&p.velocity)
-	p.position.CheckEdges(p.screenBounds, sprites.Size(p.sprite))
+	if err := p.sprite.Update(); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (p *Player) HandleMovement() {
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.direction -= math.Pi / float64(ebiten.TPS())
+		p.sprite.Direction -= math.Pi / float64(ebiten.TPS())
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.direction += math.Pi / float64(ebiten.TPS())
+		p.sprite.Direction += math.Pi / float64(ebiten.TPS())
 	}
+	p.sprite.Orientation = p.sprite.Direction
 
 	// Thrusting?
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		newVector := geometry.VectorFrom(p.direction, 0.2)
-		newVector.Add(&p.velocity)
-		p.speed = newVector.Magnitude()
+		// -------------------------- CANDIDATE FOR MOVING OUT ------------------------
+		newVector := geometry.VectorFrom(p.sprite.Direction, 0.2)
+		newVector.Add(p.sprite.Velocity)
+		p.sprite.Speed = newVector.Magnitude()
 
-		if p.speed < maxSpeed {
-			p.velocity = newVector
-		} else {
-			newVector.Scale(maxSpeed / p.speed)
-			p.velocity = newVector
+		if p.sprite.Speed >= maxSpeed {
+			newVector.Scale(maxSpeed / p.sprite.Speed)
 		}
-		p.sprite = sprites.SpaceShip2
+		p.sprite.Velocity.X = newVector.X
+		p.sprite.Velocity.Y = newVector.Y
+		// -------------------------- CANDIDATE FOR MOVING OUT ------------------------
+
+		p.sprite.Image = sprites.SpaceShip2
 
 	} else {
 		// Back to normal
-		p.sprite = sprites.SpaceShip1
+		p.sprite.Image = sprites.SpaceShip1
 	}
 }
 
@@ -212,7 +180,7 @@ func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
 	if p.shootCooldown.IsReady() && len(p.bullets) < p.maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
-		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, p.NoseTip(), p.direction+p.ShootingJitter(), sprites.Small)
+		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, p.NoseTip(), p.sprite.Direction+p.ShootingJitter(), sprites.Small)
 
 		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot)
 		sfxPlayer.Play()
@@ -238,25 +206,26 @@ func (p *Player) ShootingJitter() float64 {
 }
 
 func (p *Player) SpinOutOfControl() {
-	p.direction += 3 * math.Pi / float64(ebiten.TPS())
+	p.sprite.Orientation += 3 * math.Pi / float64(ebiten.TPS())
 	p.deadTimer.Update()
 
 	if p.deadTimer.IsReady() {
-		p.Reset()
+		p.Prepare()
+		p.livesLeft--
+
 	}
 }
 
-func (p *Player) Reset() {
+func (p *Player) Prepare() {
 	p.deadTimer = nil
-	p.direction = 0
-	p.speed = 0
-	p.velocity.X = 0
-	p.velocity.Y = 0
-	p.position.X = p.screenBounds.W/2 - p.centre.X
-	p.position.Y = p.screenBounds.H/2 - p.centre.Y
-	p.sprite = sprites.SpaceShip1
+	p.sprite.Reset()
+	p.sprite.Position.X = p.screenBounds.W/2 - p.sprite.Centre.X
+	p.sprite.Position.Y = p.screenBounds.H/2 - p.sprite.Centre.Y
+	p.sprite.Image = sprites.SpaceShip1
 	p.cannotDieTimer.Reset()
-	p.livesLeft--
+	for idx := range p.bullets {
+		delete(p.bullets, idx)
+	}
 }
 
 func (p *Player) Kill() {
@@ -277,7 +246,7 @@ func (p *Player) NotNear() *geometry.Vector {
 			Y: rand.Float64() * p.screenBounds.H,
 		}
 
-		if p.position.SquareDistanceFrom(&position) > sqHalfH {
+		if p.sprite.Position.SquareDistanceFrom(&position) > sqHalfH {
 			return &position
 		}
 	}
@@ -306,9 +275,9 @@ func (p *Player) Bullets(callback func(bullet *Bullet)) {
 }
 
 func (p *Player) Size() float64 {
-	return p.centre.Y * 0.65
+	return p.sprite.Centre.Y * 0.65
 }
 
 func (p *Player) Position() *geometry.Vector {
-	return geometry.Add(&p.position, &p.centre)
+	return geometry.Add(p.sprite.Position, p.sprite.Centre).Mod(p.screenBounds)
 }

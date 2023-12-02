@@ -131,13 +131,14 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func (g *Game) Reset(n int) {
 	g.Level.Reset(1)
 	g.Player = entity.NewPlayer(&screenSize)
-	g.Alien = entity.NewAlien(1, g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Alien = entity.NewAlien(1, g.Player.NotNear(), g.Player.Position, &screenSize)
 	g.Asteroids = entity.NewAsteroidBelt(n, g.Sequence, g.Player, &screenSize)
 }
 
 func (g *Game) NextLevel() {
 	g.Level.Next()
-	g.Alien = entity.NewAlien(g.Level.Current(), g.Player.NotNear(), g.Player.CurrentPosition(), &screenSize)
+	g.Player.Prepare()
+	g.Alien = entity.NewAlien(g.Level.Current(), g.Player.NotNear(), g.Player.Position, &screenSize)
 	g.Asteroids = entity.NewAsteroidBelt(5+g.Level.Current(), g.Sequence, g.Player, &screenSize)
 }
 
@@ -147,7 +148,7 @@ func main() {
 	g := &Game{
 		Sequence:   seq,
 		Player:     player,
-		Alien:      entity.NewAlien(1, player.NotNear(), player.CurrentPosition(), &screenSize),
+		Alien:      entity.NewAlien(1, player.NotNear(), player.Position, &screenSize),
 		Asteroids:  entity.NewAsteroidBelt(6, seq, player, &screenSize),
 		Level:      entity.NewLevel(&screenSize),
 		fullscreen: false,

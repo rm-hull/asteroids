@@ -10,7 +10,11 @@ type Vector struct {
 	Y float64
 }
 
-var Zero = Vector{X: 0, Y: 0}
+var zero = Zero()
+
+func Zero() *Vector {
+	return &Vector{X: 0, Y: 0}
+}
 
 func (v *Vector) Normalize() Vector {
 	magnitude := v.Magnitude()
@@ -18,11 +22,11 @@ func (v *Vector) Normalize() Vector {
 }
 
 func (v *Vector) Magnitude() float64 {
-	return v.DistanceFrom(&Zero)
+	return v.DistanceFrom(zero)
 }
 
 func (v Vector) String() string {
-	return fmt.Sprintf("%0.1f,%0.1f", v.X, v.Y)
+	return fmt.Sprintf("(%0.0f, %0.0f)", v.X, v.Y)
 }
 
 func (v *Vector) AngleTo(other *Vector) float64 {
@@ -59,8 +63,14 @@ func (v *Vector) Scale(factor float64) {
 	v.Y *= factor
 }
 
-func VectorFrom(direction float64, speed float64) Vector {
-	return Vector{
+func (v *Vector) Mod(bounds *Dimension) *Vector {
+	v.X = math.Mod(v.X, bounds.W)
+	v.Y = math.Mod(v.Y, bounds.H)
+	return v
+}
+
+func VectorFrom(direction float64, speed float64) *Vector {
+	return &Vector{
 		X: speed * math.Cos(direction),
 		Y: speed * math.Sin(direction),
 	}
