@@ -83,15 +83,7 @@ func (a *Alien) HandleMovement() {
 
 	thrusting := rand.Float64() > 0.3
 	if thrusting {
-		newVector := geometry.VectorFrom(a.sprite.Direction, 0.3)
-		newVector.Add(a.sprite.Velocity)
-		speed := newVector.Magnitude()
-
-		if speed >= maxSpeed {
-			newVector.Scale(maxSpeed / speed)
-		}
-		a.sprite.Velocity.X = newVector.X
-		a.sprite.Velocity.Y = newVector.Y
+		a.sprite.MoveForward(0.3, maxSpeed)
 	}
 }
 

@@ -108,3 +108,15 @@ func (s *Sprite) checkEdges() {
 		s.Position.Y = s.screenBounds.H - s.Size.H
 	}
 }
+
+func (s *Sprite) MoveForward(acceleration, maxSpeed float64) {
+	newVector := geometry.VectorFrom(s.Direction, acceleration)
+	newVector.Add(s.Velocity)
+	s.Speed = newVector.Magnitude()
+
+	if s.Speed >= maxSpeed {
+		newVector.Scale(maxSpeed / s.Speed)
+	}
+	s.Velocity.X = newVector.X
+	s.Velocity.Y = newVector.Y
+}

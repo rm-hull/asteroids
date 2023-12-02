@@ -14,7 +14,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
@@ -70,6 +69,7 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 func (p *Player) Draw(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("LIVES: %d", p.livesLeft), fonts.AsteroidsDisplayFont16, 0, 30, color.White)
 	text.Draw(screen, fmt.Sprintf("SCORE: %d", p.score), fonts.AsteroidsDisplayFont16, 350, 30, color.White)
+	text.Draw(screen, fmt.Sprintf("FPS: %0.2f", ebiten.ActualFPS()), fonts.AsteroidsDisplayFont16, 700, 30, color.White)
 
 	if p.livesLeft == 0 {
 		message := "GAME OVER"
@@ -97,10 +97,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	}
 
 	p.sprite.Draw(screen)
-
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: %v", p.sprite.Position), 500, 0)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.sprite.Speed), 650, 0)
-
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
@@ -156,18 +152,7 @@ func (p *Player) HandleMovement() {
 
 	// Thrusting?
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		// -------------------------- CANDIDATE FOR MOVING OUT ------------------------
-		newVector := geometry.VectorFrom(p.sprite.Direction, 0.2)
-		newVector.Add(p.sprite.Velocity)
-		p.sprite.Speed = newVector.Magnitude()
-
-		if p.sprite.Speed >= maxSpeed {
-			newVector.Scale(maxSpeed / p.sprite.Speed)
-		}
-		p.sprite.Velocity.X = newVector.X
-		p.sprite.Velocity.Y = newVector.Y
-		// -------------------------- CANDIDATE FOR MOVING OUT ------------------------
-
+		p.sprite.MoveForward(0.2, maxSpeed)
 		p.sprite.Image = sprites.SpaceShip2
 
 	} else {
