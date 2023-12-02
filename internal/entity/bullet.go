@@ -75,7 +75,7 @@ func (b *Bullet) Size() float64 {
 }
 
 func (b *Bullet) CollisionDetected(collider Collider) bool {
-	if b.timer.PercentComplete() < 90 {
+	if b.timer.PercentComplete() < 90 && !b.directHit {
 		if hit := CollisionDetected(b, collider); hit {
 			b.directHit = true
 			return true
