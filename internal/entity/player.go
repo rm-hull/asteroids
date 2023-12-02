@@ -15,6 +15,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
@@ -30,7 +31,7 @@ type Player struct {
 	deadTimer        *internal.Timer
 	cannotDieTimer   *internal.Timer
 	shootCooldown    *internal.Timer
-	bounds           *geometry.Dimension
+	screenBounds     *geometry.Dimension
 	livesLeft        int
 	score            int
 	bullets          map[int]*Bullet
@@ -67,13 +68,14 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 		cannotDieTimer:   internal.NewTimer(cannotDieDuration),
 		shootCooldown:    internal.NewTimer(cooldownTime),
 		sprite:           sprite,
-		bounds:           screenBounds,
+		screenBounds:     screenBounds,
 		livesLeft:        numLives,
 		score:            0,
 		bullets:          make(map[int]*Bullet),
 		sequence:         internal.NewSequence(),
 		maxSalvo:         3,
 		shootingAccuracy: 1.0,
+		godMode:          true,
 	}
 }
 
@@ -91,8 +93,8 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		dx := float64(bounds.Max.X.Round() - bounds.Min.X.Round())
 		dy := float64(bounds.Max.Y.Round() - bounds.Min.Y.Round())
 
-		x := int(p.bounds.W-dx) / 2
-		y := int(p.bounds.H-dy) / 2
+		x := int(p.screenBounds.W-dx) / 2
+		y := int(p.screenBounds.H-dy) / 2
 
 		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
 		return
@@ -108,8 +110,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	op.GeoM.Rotate(p.direction)
 	op.GeoM.Translate(p.centre.X, p.centre.Y)
 
-	op.GeoM.Translate(p.position.X, p.position.Y)
-
 	if p.IsDying() {
 		fade := 1.0 - p.deadTimer.PercentComplete()
 		cm.Scale(1.0, 1.0, 1.0, fade)
@@ -119,7 +119,24 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	}
 
 	// vector.DrawFilledCircle(screen, float32(p.position.X+p.centre.X), float32(p.position.Y+p.centre.Y), float32(p.Size()), color.RGBA{255, 128, 0, 255}, false)
+	op.GeoM.Translate(p.position.X, p.position.Y)
 	colorm.DrawImage(screen, p.sprite, cm, op)
+
+	op.GeoM.Translate(p.screenBounds.W, 0)
+	colorm.DrawImage(screen, p.sprite, cm, op)
+
+	op.GeoM.Translate(-p.screenBounds.W, +p.screenBounds.H)
+	colorm.DrawImage(screen, p.sprite, cm, op)
+
+	op.GeoM.Translate(-p.screenBounds.W, -p.screenBounds.H)
+	colorm.DrawImage(screen, p.sprite, cm, op)
+
+	op.GeoM.Translate(+p.screenBounds.W, -p.screenBounds.H)
+	colorm.DrawImage(screen, p.sprite, cm, op)
+
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Position: (%d,%d)", int(p.position.X), int(p.position.Y)), 500, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Speed: %0.2f", p.speed), 650, 0)
+
 }
 
 func (p *Player) NoseTip() *geometry.Vector {
@@ -157,11 +174,9 @@ func (p *Player) Update() error {
 		}
 	}
 
-	bounds := p.sprite.Bounds()
-
 	p.cannotDieTimer.Update()
 	p.position.Add(&p.velocity)
-	p.position.CheckEdges(p.bounds, float64(bounds.Dx()), float64(bounds.Dy()))
+	p.position.CheckEdges(p.screenBounds, sprites.Size(p.sprite))
 
 	return nil
 }
@@ -197,7 +212,7 @@ func (p *Player) HandleShooting() {
 	p.shootCooldown.Update()
 	if p.shootCooldown.IsReady() && len(p.bullets) < p.maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
-		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction+p.ShootingJitter(), sprites.Small)
+		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, p.NoseTip(), p.direction+p.ShootingJitter(), sprites.Small)
 
 		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot)
 		sfxPlayer.Play()
@@ -237,8 +252,8 @@ func (p *Player) Reset() {
 	p.speed = 0
 	p.velocity.X = 0
 	p.velocity.Y = 0
-	p.position.X = p.bounds.W/2 - p.centre.X
-	p.position.Y = p.bounds.H/2 - p.centre.Y
+	p.position.X = p.screenBounds.W/2 - p.centre.X
+	p.position.Y = p.screenBounds.H/2 - p.centre.Y
 	p.sprite = sprites.SpaceShip1
 	p.cannotDieTimer.Reset()
 	p.livesLeft--
@@ -255,11 +270,11 @@ func (p *Player) Kill() {
 }
 
 func (p *Player) NotNear() *geometry.Vector {
-	sqHalfH := math.Pow(p.bounds.H/3, 2)
+	sqHalfH := math.Pow(p.screenBounds.H/3, 2)
 	for {
 		position := geometry.Vector{
-			X: rand.Float64() * p.bounds.W,
-			Y: rand.Float64() * p.bounds.H,
+			X: rand.Float64() * p.screenBounds.W,
+			Y: rand.Float64() * p.screenBounds.H,
 		}
 
 		if p.position.SquareDistanceFrom(&position) > sqHalfH {

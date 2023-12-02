@@ -93,3 +93,11 @@ func Centre(sprite *ebiten.Image) geometry.Vector {
 		Y: float64(bounds.Dy()) / 2,
 	}
 }
+
+func Size(sprite *ebiten.Image) *geometry.Dimension {
+	bounds := sprite.Bounds()
+	return &geometry.Dimension{
+		W: float64(bounds.Dx()),
+		H: float64(bounds.Dy()),
+	}
+}

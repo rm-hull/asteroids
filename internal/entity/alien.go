@@ -18,7 +18,7 @@ type Alien struct {
 	centre           geometry.Vector
 	direction        float64
 	sprite           *ebiten.Image
-	bounds           *geometry.Dimension
+	screenBounds     *geometry.Dimension
 	respawnTimer     *internal.Timer
 	shootCooldown    *internal.Timer
 	bullets          map[int]*Bullet
@@ -36,7 +36,7 @@ func NewAlien(level int, position *geometry.Vector, playerPosition *geometry.Vec
 		position:         *position,
 		sprite:           sprites.AlienSpaceShip,
 		centre:           sprites.Centre(sprites.AlienSpaceShip),
-		bounds:           screenBounds,
+		screenBounds:     screenBounds,
 		respawnTimer:     internal.NewTimer(respawnDuration),
 		shootCooldown:    internal.NewTimer(5 * time.Second),
 		sequence:         internal.NewSequence(),
@@ -54,10 +54,21 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 
 	if a.respawnTimer.IsReady() {
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(a.position.X, a.position.Y)
-
 		// vector.DrawFilledCircle(screen, float32(a.position.X+a.centre.X), float32(a.position.Y+a.centre.Y), float32(a.Size()), color.RGBA{128, 128, 0, 255}, false)
 
+		op.GeoM.Translate(a.position.X, a.position.Y)
+		screen.DrawImage(a.sprite, op)
+	
+		op.GeoM.Translate(a.screenBounds.W, 0)
+		screen.DrawImage(a.sprite, op)
+	
+		op.GeoM.Translate(-a.screenBounds.W, +a.screenBounds.H)
+		screen.DrawImage(a.sprite, op)
+	
+		op.GeoM.Translate(-a.screenBounds.W, -a.screenBounds.H)
+		screen.DrawImage(a.sprite, op)
+	
+		op.GeoM.Translate(+a.screenBounds.W, -a.screenBounds.H)
 		screen.DrawImage(a.sprite, op)
 	}
 }
@@ -80,7 +91,7 @@ func (a *Alien) Update() error {
 		a.HandleShooting()
 
 		a.position.Add(&a.velocity)
-		a.position.CheckEdges(a.bounds, a.centre.X, a.centre.Y)
+		a.position.CheckEdges(a.screenBounds, sprites.Size(a.sprite))
 	}
 	return nil
 }
@@ -123,7 +134,7 @@ func (a *Alien) HandleShooting() {
 			X: a.position.X + a.centre.X + (math.Cos(direction) * 60),
 			Y: a.position.Y + a.centre.Y + (math.Sin(direction) * 60),
 		}
-		a.bullets[a.sequence.GetNext()] = NewBullet(a.bounds, spawnPosn, direction, sprites.Large)
+		a.bullets[a.sequence.GetNext()] = NewBullet(a.screenBounds, spawnPosn, direction, sprites.Large)
 	}
 }
 
