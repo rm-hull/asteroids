@@ -76,16 +76,3 @@ func VectorFrom(direction float64, speed float64) *Vector {
 	}
 }
 
-func (v *Vector) CheckEdges(screen *Dimension, sprite *Dimension) {
-	if v.X > screen.W {
-		v.X = 0
-	} else if v.X < -sprite.W {
-		v.X = screen.W - sprite.W
-	}
-
-	if v.Y > screen.H {
-		v.Y = 0
-	} else if v.Y < -sprite.H {
-		v.Y = screen.H - sprite.H
-	}
-}

@@ -58,7 +58,7 @@ func (s *Sprite) Update() error {
 	s.Orientation += s.Rotation
 	s.Position.Add(s.Velocity)
 	if s.wraparound {
-		s.Position.CheckEdges(s.screenBounds, s.Size)
+		s.checkEdges()
 	}
 	return nil
 }
@@ -93,4 +93,18 @@ func (s *Sprite) Draw(screen *ebiten.Image) {
 
 	s.ColorModel.Reset()
 	s.DrawOptions.GeoM.Reset()
+}
+
+func (s *Sprite) checkEdges() {
+	if s.Position.X > s.screenBounds.W {
+		s.Position.X = 0
+	} else if s.Position.X < -s.Size.W {
+		s.Position.X = s.screenBounds.W - s.Size.W
+	}
+
+	if s.Position.Y > s.screenBounds.H {
+		s.Position.Y = 0
+	} else if s.Position.Y < -s.Size.H {
+		s.Position.Y = s.screenBounds.H - s.Size.H
+	}
 }
