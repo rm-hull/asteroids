@@ -5,6 +5,7 @@ import (
 	"asteroids/internal/fonts"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
+	"asteroids/resources/soundfx"
 	"fmt"
 	"image/color"
 	"math"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -38,12 +40,17 @@ type Player struct {
 	shootingAccuracy float64
 }
 
-const numLives = 3
-const maxSpeed = 5.0
-const blastRadius = 40.0
-const deathDuration = 2 * time.Second
-const cannotDieDuration = 3 * time.Second
-const cooldownTime = 100 * time.Millisecond
+const (
+	numLives          = 3
+	maxSpeed          = 5.0
+	blastRadius       = 40.0
+	deathDuration     = 2 * time.Second
+	cannotDieDuration = 3 * time.Second
+	cooldownTime      = 100 * time.Millisecond
+	sampleRate        = 48000
+)
+
+var audioContext = audio.NewContext(sampleRate)
 
 func NewPlayer(screenBounds *geometry.Dimension) *Player {
 	sprite := sprites.SpaceShip1
@@ -191,6 +198,9 @@ func (p *Player) HandleShooting() {
 	if p.shootCooldown.IsReady() && len(p.bullets) < p.maxSalvo && (ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeySpace)) {
 		p.shootCooldown.Reset()
 		p.bullets[p.sequence.GetNext()] = NewBullet(p.bounds, p.NoseTip(), p.direction+p.ShootingJitter(), sprites.Small)
+
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot)
+		sfxPlayer.Play()
 	}
 }
 
@@ -239,6 +249,9 @@ func (p *Player) Kill() {
 		return
 	}
 	p.deadTimer = internal.NewTimer(deathDuration)
+
+	sePlayer := audioContext.NewPlayerFromBytes(soundfx.Explosion1)
+	sePlayer.Play()
 }
 
 func (p *Player) NotNear() *geometry.Vector {

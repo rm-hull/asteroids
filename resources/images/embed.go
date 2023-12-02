@@ -5,4 +5,4 @@ import (
 )
 
 //go:embed asteroids-2x.png
-var Asteroids2X_png []byte //embed.FS
+var Asteroids2X_png []byte

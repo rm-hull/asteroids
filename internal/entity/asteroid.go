@@ -4,6 +4,7 @@ import (
 	"asteroids/internal"
 	"asteroids/internal/geometry"
 	"asteroids/internal/sprites"
+	"asteroids/resources/soundfx"
 
 	"math"
 	"math/rand"
@@ -86,6 +87,10 @@ func (a *Asteroid) Update() error {
 
 func (a *Asteroid) Explode() []*Asteroid {
 	a.exploded = true
+	sePlayer := audioContext.NewPlayerFromBytes(soundfx.Explosion2)
+	sePlayer.SetVolume(0.15)
+	sePlayer.Play()
+
 	arr := make([]*Asteroid, 0)
 	switch a.size {
 	case sprites.Large:
