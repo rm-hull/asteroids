@@ -101,7 +101,7 @@ func (a *Alien) HandleShooting() {
 		a.shootCooldown.ResetTarget(duration)
 
 		direction := a.sprite.Position.AngleTo(a.playerPosition()) + a.ShootingJitter()
-		spawnPosn := geometry.Add(a.sprite.Position, geometry.VectorFrom(direction, 60))
+		spawnPosn := geometry.Add(a.Position(), geometry.VectorFrom(direction, 60))
 		a.bullets[a.sequence.GetNext()] = NewBullet(a.screenBounds, spawnPosn, direction, sprites.Large)
 
 		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot2)
