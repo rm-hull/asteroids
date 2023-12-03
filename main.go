@@ -89,6 +89,7 @@ func (g *Game) HandleCollisionDetection() {
 				for _, fragment := range asteroid.Explode() {
 					g.Asteroids[g.Sequence.GetNext()] = fragment
 				}
+				return
 			}
 		}
 
@@ -107,6 +108,7 @@ func (g *Game) HandleCollisionDetection() {
 	for _, asteroid := range g.Asteroids {
 		if g.Player.IsAlive() && entity.CollisionDetected(asteroid, g.Player) {
 			g.Player.Kill()
+			break
 		}
 	}
 
