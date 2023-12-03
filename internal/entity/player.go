@@ -11,13 +11,13 @@ import (
 	"github.com/rm-hull/asteroids/internal/fonts"
 	"github.com/rm-hull/asteroids/internal/geometry"
 	"github.com/rm-hull/asteroids/internal/sprites"
+	"github.com/rm-hull/asteroids/internal/text_align"
 	"github.com/rm-hull/asteroids/resources/soundfx"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 )
 
 type Player struct {
@@ -75,20 +75,11 @@ func (p *Player) Draw(screen *ebiten.Image) {
 
 	if p.livesLeft == 0 {
 		message := "GAME OVER"
-		bounds, _ := font.BoundString(fonts.AsteroidsDisplayFont32, message)
-		dx := float64(bounds.Max.X.Round() - bounds.Min.X.Round())
-		dy := float64(bounds.Max.Y.Round() - bounds.Min.Y.Round())
-
-		x := int(p.screenBounds.W-dx) / 2
-		y := int(p.screenBounds.H-dy) / 2
-
+		x, y := text_align.Center(p.screenBounds, message, fonts.AsteroidsDisplayFont32)
 		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
 
 		message = "PRESS \"R\" TO RESTART"
-		bounds, _ = font.BoundString(fonts.AsteroidsDisplayFont16, message)
-		dx = float64(bounds.Max.X.Round() - bounds.Min.X.Round())
-		x = int(p.screenBounds.W-dx) / 2
-
+		x, _ = text_align.Center(p.screenBounds, message, fonts.AsteroidsDisplayFont16)
 		text.Draw(screen, message, fonts.AsteroidsDisplayFont16, x, y+48, color.White)
 		return
 	}

@@ -9,10 +9,10 @@ import (
 	"github.com/rm-hull/asteroids/internal"
 	"github.com/rm-hull/asteroids/internal/fonts"
 	"github.com/rm-hull/asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/internal/text_align"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 )
 
 type Level struct {
@@ -68,12 +68,10 @@ func (l *Level) Reset(level int) {
 	l.current = level
 
 	l.message = fmt.Sprintf("LEVEL %d", l.current)
-	bounds, _ := font.BoundString(fonts.AsteroidsDisplayFont32, l.message)
-	dx := float64(bounds.Max.X.Round() - bounds.Min.X.Round())
-	dy := float64(bounds.Max.Y.Round() - bounds.Min.Y.Round())
+	x, y := text_align.Center(l.bounds, l.message, fonts.AsteroidsDisplayFont32)
 
-	l.position.X = (l.bounds.W - dx) / 2
-	l.position.Y = (l.bounds.H - dy) / 2
+	l.position.X = float64(x)
+	l.position.Y = float64(y)
 
 	l.timer.Reset()
 }
