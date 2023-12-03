@@ -111,11 +111,11 @@ func (a *Asteroid) IsExploded() bool {
 func (a *Asteroid) Value() int {
 	switch a.size {
 	case sprites.Large:
-		return 10
+		return 20
 	case sprites.Medium:
-		return 25
-	case sprites.Small:
 		return 50
+	case sprites.Small:
+		return 100
 	default:
 		return 0
 	}

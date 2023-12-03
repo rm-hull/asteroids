@@ -60,6 +60,7 @@ You'll have to browse the source code to find out how to activate it.
 
 ## References & Attribution
 
+- https://www.classicgaming.cc/classics/asteroids/play-guide
 - https://arcadeblogger.com/2018/10/24/atari-asteroids-creating-a-vector-arcade-classic/
 - https://threedots.tech/post/making-games-in-go/
 - https://news.ycombinator.com/item?id=38403111
