@@ -147,7 +147,7 @@ func (a *Alien) Kill() {
 }
 
 func (a *Alien) IsAlive() bool {
-	return a.respawnTimer.IsReady()
+	return a.respawnTimer.IsReady() && !a.IsDying()
 }
 
 func (a *Alien) Bullets(callback func(bullet *Bullet)) {
