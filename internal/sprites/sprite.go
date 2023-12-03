@@ -48,6 +48,8 @@ func NewSprite(screenBounds *geometry.Dimension, image *ebiten.Image, wraparound
 }
 
 func (s *Sprite) Reset() {
+	s.Orientation = 0
+	s.Rotation = 0
 	s.Direction = 0
 	s.Speed = 0
 	s.Velocity.X = 0

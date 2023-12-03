@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"math/rand"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 type Alien struct {
 	sprite           *sprites.Sprite
 	screenBounds     *geometry.Dimension
+	deadTimer        *internal.Timer
 	respawnTimer     *internal.Timer
 	shootCooldown    *internal.Timer
 	bullets          map[int]*Bullet
@@ -49,6 +51,12 @@ func (a *Alien) Draw(screen *ebiten.Image) {
 	}
 
 	if a.respawnTimer.IsReady() {
+
+		if a.IsDying() {
+			fade := 1.0 - a.deadTimer.PercentComplete()
+			a.sprite.ColorModel.Scale(1.0, 1.0, 1.0, fade)
+		}
+
 		a.sprite.Draw(screen)
 	}
 }
@@ -67,9 +75,13 @@ func (a *Alien) Update() error {
 
 	a.respawnTimer.Update()
 	if a.respawnTimer.IsReady() {
-		a.HandleMovement()
-		a.HandleShooting()
 
+		if a.IsDying() {
+			a.SpinOutOfControl()
+		} else {
+			a.HandleMovement()
+			a.HandleShooting()
+		}
 		if err := a.sprite.Update(); err != nil {
 			return err
 		}
@@ -127,7 +139,8 @@ func (a *Alien) Size() float64 {
 }
 
 func (a *Alien) Kill() {
-	a.respawnTimer.Reset()
+	a.deadTimer = internal.NewTimer(deathDuration)
+
 	sePlayer := audioContext.NewPlayerFromBytes(soundfx.Explosion2)
 	sePlayer.SetVolume(0.15)
 	sePlayer.Play()
@@ -140,5 +153,20 @@ func (a *Alien) IsAlive() bool {
 func (a *Alien) Bullets(callback func(bullet *Bullet)) {
 	for _, bullet := range a.bullets {
 		callback(bullet)
+	}
+}
+
+func (a *Alien) IsDying() bool {
+	return a.deadTimer != nil
+}
+
+func (a *Alien) SpinOutOfControl() {
+	a.sprite.Orientation += 3 * math.Pi / float64(ebiten.TPS())
+	a.deadTimer.Update()
+
+	if a.deadTimer.IsReady() {
+		a.respawnTimer.Reset()
+		a.sprite.Reset()
+		a.deadTimer = nil
 	}
 }
