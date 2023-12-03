@@ -46,7 +46,7 @@ func NewAsteroidBelt(n int, seq *internal.Sequence, player *Player, screenBounds
 func NewAsteroid(size int, position *geometry.Vector, screenBounds *geometry.Dimension) *Asteroid {
 
 	sprite := sprites.NewSprite(screenBounds, sprites.Asteroid(size), true)
-	sprite.Speed = rand.Float64() * asteroidMaxSpeed
+	sprite.Speed = (rand.Float64() + 0.3) * asteroidMaxSpeed
 	sprite.Direction = rand.Float64() * 2 * math.Pi
 	sprite.Position.X = position.X
 	sprite.Position.Y = position.Y
