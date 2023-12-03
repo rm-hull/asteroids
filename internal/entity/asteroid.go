@@ -85,11 +85,11 @@ func (a *Asteroid) Explode() []*Asteroid {
 	arr := make([]*Asteroid, 0)
 	switch a.size {
 	case sprites.Large:
-		n := rand.Intn(2) + 1
+		n := rand.Intn(3) + 1
 		for i := 0; i < n; i++ {
 			arr = append(arr, NewAsteroid(sprites.Medium, a.sprite.Position, a.screenBounds))
 		}
-		n = rand.Intn(4 - n)
+		n = rand.Intn(5 - n)
 		for i := 0; i < n; i++ {
 			arr = append(arr, NewAsteroid(sprites.Small, a.sprite.Position, a.screenBounds))
 		}
