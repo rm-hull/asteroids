@@ -18,3 +18,6 @@ var Explosion2 []byte
 
 //go:embed extra-life.wav
 var ExtraLife []byte
+
+//go:embed game-over.wav
+var GameOver []byte

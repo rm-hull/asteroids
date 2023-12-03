@@ -83,6 +83,13 @@ func (p *Player) Draw(screen *ebiten.Image) {
 		y := int(p.screenBounds.H-dy) / 2
 
 		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
+
+		message = "PRESS \"R\" TO RESTART"
+		bounds, _ = font.BoundString(fonts.AsteroidsDisplayFont16, message)
+		dx = float64(bounds.Max.X.Round() - bounds.Min.X.Round())
+		x = int(p.screenBounds.W-dx) / 2
+
+		text.Draw(screen, message, fonts.AsteroidsDisplayFont16, x, y+48, color.White)
 		return
 	}
 
@@ -195,6 +202,10 @@ func (p *Player) SpinOutOfControl() {
 	if p.deadTimer.IsReady() {
 		p.Prepare()
 		p.livesLeft--
+		if p.livesLeft == 0 {
+			sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.GameOver)
+			sfxPlayer.Play()
+		}
 	}
 }
 

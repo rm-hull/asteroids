@@ -38,7 +38,8 @@ go run github.com/rm-hull/asteroids@latest
 
 Pick off the asteroids taking care to mop up exploded fragments. After a while an alien saucer may appear, and will
 start aiming at you. As you progress through the levels, the asteroid belt gets more dense, and the alien's
-shooting accuracy improves.
+shooting accuracy improves. On starting each level, you will have a few seconds of immunity to get yourself out of
+danger.
 
 There is a "god-mode" which gives you immortality and your weapon is hugely upgraded from the normal salvo of 3 shots.
 You'll have to browse the source code to find out how to activate it.
