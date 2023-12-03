@@ -70,8 +70,6 @@ func (v *Vector) Mod(bounds *Dimension) *Vector {
 }
 
 func VectorFrom(direction float64, magnitude float64) *Vector {
-	return &Vector{
-		X: magnitude * math.Cos(direction),
-		Y: magnitude * math.Sin(direction),
-	}
+	sin, cos := math.Sincos(direction)
+	return &Vector{X: magnitude * cos, Y: magnitude * sin}
 }
