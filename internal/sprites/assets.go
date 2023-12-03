@@ -1,12 +1,13 @@
 package sprites
 
 import (
-	"asteroids/internal/geometry"
-	"asteroids/resources/images"
 	"bytes"
 	"image"
 	_ "image/png"
 	"math/rand"
+
+	"github.com/rm-hull/asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/resources/images"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

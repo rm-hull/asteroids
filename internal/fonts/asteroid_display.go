@@ -1,8 +1,9 @@
 package fonts
 
 import (
-	"asteroids/resources/fonts"
 	"log"
+
+	"github.com/rm-hull/asteroids/resources/fonts"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"

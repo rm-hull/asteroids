@@ -1,7 +1,7 @@
 package sprites
 
 import (
-	"asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/internal/geometry"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/colorm"

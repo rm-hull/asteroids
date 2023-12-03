@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"asteroids/internal"
-	"asteroids/internal/geometry"
-	"asteroids/internal/sprites"
-	"asteroids/resources/soundfx"
+	"github.com/rm-hull/asteroids/internal"
+	"github.com/rm-hull/asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/internal/sprites"
+	"github.com/rm-hull/asteroids/resources/soundfx"
 
 	"math"
 	"math/rand"

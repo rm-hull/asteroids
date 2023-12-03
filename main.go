@@ -1,10 +1,11 @@
 package main
 
 import (
-	"asteroids/internal"
-	"asteroids/internal/entity"
-	"asteroids/internal/geometry"
 	"errors"
+
+	"github.com/rm-hull/asteroids/internal"
+	"github.com/rm-hull/asteroids/internal/entity"
+	"github.com/rm-hull/asteroids/internal/geometry"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"

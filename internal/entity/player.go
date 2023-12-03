@@ -1,16 +1,17 @@
 package entity
 
 import (
-	"asteroids/internal"
-	"asteroids/internal/fonts"
-	"asteroids/internal/geometry"
-	"asteroids/internal/sprites"
-	"asteroids/resources/soundfx"
 	"fmt"
 	"image/color"
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/rm-hull/asteroids/internal"
+	"github.com/rm-hull/asteroids/internal/fonts"
+	"github.com/rm-hull/asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/internal/sprites"
+	"github.com/rm-hull/asteroids/resources/soundfx"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"

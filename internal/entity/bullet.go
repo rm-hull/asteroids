@@ -1,10 +1,11 @@
 package entity
 
 import (
-	"asteroids/internal"
-	"asteroids/internal/geometry"
-	"asteroids/internal/sprites"
 	"time"
+
+	"github.com/rm-hull/asteroids/internal"
+	"github.com/rm-hull/asteroids/internal/geometry"
+	"github.com/rm-hull/asteroids/internal/sprites"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

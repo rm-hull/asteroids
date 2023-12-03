@@ -1,13 +1,14 @@
 package entity
 
 import (
-	"asteroids/internal"
-	"asteroids/internal/fonts"
-	"asteroids/internal/geometry"
 	"fmt"
 	"image/color"
 	"math"
 	"time"
+
+	"github.com/rm-hull/asteroids/internal"
+	"github.com/rm-hull/asteroids/internal/fonts"
+	"github.com/rm-hull/asteroids/internal/geometry"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"

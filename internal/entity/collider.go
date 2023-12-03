@@ -1,6 +1,6 @@
 package entity
 
-import "asteroids/internal/geometry"
+import "github.com/rm-hull/asteroids/internal/geometry"
 
 type Collider interface {
 	Position() *geometry.Vector

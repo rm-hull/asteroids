@@ -1,4 +1,4 @@
-module asteroids
+module github.com/rm-hull/asteroids
 
 go 1.21.4
 
