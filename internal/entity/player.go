@@ -42,7 +42,7 @@ const (
 	deathDuration      = 2 * time.Second
 	cannotDieDuration  = 3 * time.Second
 	cooldownTime       = 100 * time.Millisecond
-	sampleRate         = 48000
+	sampleRate         = 44100
 	extraLifeThreshold = 10000
 )
 
