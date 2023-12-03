@@ -4,12 +4,12 @@ A modern implementation (in [Golang](https://go.dev/)) of the classic arcade gam
 
 ![screenshot](./screenshot.png)
 
-The game can be compiled natively and run locally, or cross-compiled into [WASM](https://webassembly.org/) and 
-deployed to GitHub Pages. Every time a commit is made on the main branch, a GitHub action deploys a fresh version. 
+The game can be compiled natively and run locally, or cross-compiled into [WASM](https://webassembly.org/) and
+deployed to GitHub Pages. Every time a commit is made on the main branch, a GitHub action deploys a fresh version.
 
 ## Running in a browser
 
-You can play the game online at https://www.destructuring-bind.org/asteroids. A browser with WebGL support is required. 
+You can play the game online at https://www.destructuring-bind.org/asteroids. A browser with WebGL support is required.
 It will run on smartphones and iPads, however there is no support yet for non-keyboard input.
 
 ## Running locally
@@ -38,7 +38,7 @@ go run github.com/rm-hull/asteroids@latest
 
 Pick off the asteroids taking care to mop up exploded fragments. After a while an alien saucer may appear, and will
 start aiming at you. As you progress through the levels, the asteroid belt gets more dense, and the alien's
-shooting accuracy improves. 
+shooting accuracy improves.
 
 There is a "god-mode" which gives you immortality and your weapon is hugely upgraded from the normal salvo of 3 shots.
 You'll have to browse the source code to find out how to activate it.
@@ -46,7 +46,7 @@ You'll have to browse the source code to find out how to activate it.
 ## TODO
 
 - Hyperspace
-- Extra lives at every 10,000
+- ~~Extra lives at every 10,000~~
 - (Persistent) High score
 - Score wraps round at 100,000 (like the original)
 - Support different sprite sheets
@@ -62,6 +62,7 @@ You'll have to browse the source code to find out how to activate it.
 
 - https://www.classicgaming.cc/classics/asteroids/play-guide
 - https://arcadeblogger.com/2018/10/24/atari-asteroids-creating-a-vector-arcade-classic/
+- https://mixkit.co/free-sound-effects/arcade/
 - https://threedots.tech/post/making-games-in-go/
 - https://news.ycombinator.com/item?id=38403111
 - https://github.com/sedyh/awesome-ebitengine

@@ -36,13 +36,14 @@ type Player struct {
 }
 
 const (
-	numLives          = 3
-	maxSpeed          = 5.0
-	blastRadius       = 40.0
-	deathDuration     = 2 * time.Second
-	cannotDieDuration = 3 * time.Second
-	cooldownTime      = 100 * time.Millisecond
-	sampleRate        = 48000
+	numLives           = 3
+	maxSpeed           = 5.0
+	blastRadius        = 40.0
+	deathDuration      = 2 * time.Second
+	cannotDieDuration  = 3 * time.Second
+	cooldownTime       = 100 * time.Millisecond
+	sampleRate         = 48000
+	extraLifeThreshold = 10000
 )
 
 var audioContext = audio.NewContext(sampleRate)
@@ -234,6 +235,13 @@ func (p *Player) NotNear() *geometry.Vector {
 }
 
 func (p *Player) UpdateScore(value int) {
+	if math.Mod(float64(p.score), extraLifeThreshold) > math.Mod(float64(p.score+value), extraLifeThreshold) {
+		p.livesLeft++
+
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.ExtraLife)
+		sfxPlayer.Play()
+	}
+
 	p.score += value
 }
 

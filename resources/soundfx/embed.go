@@ -15,3 +15,6 @@ var Explosion1 []byte
 
 //go:embed explosion1.wav
 var Explosion2 []byte
+
+//go:embed extra-life.wav
+var ExtraLife []byte
