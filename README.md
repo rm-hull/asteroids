@@ -28,6 +28,8 @@ go run github.com/rm-hull/asteroids@latest
 
 <kbd>↑</kbd> : Thrust
 
+<kbd>F</kbd> : Toggle fullscreen
+
 <kbd>P</kbd> : Toggle pause
 
 <kbd>Q</kbd> : Quit
