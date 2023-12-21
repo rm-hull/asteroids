@@ -118,6 +118,7 @@ func (a *Alien) HandleShooting() {
 		a.bullets[a.sequence.GetNext()] = NewBullet(a.screenBounds, spawnPosn, direction, sprites.Large)
 
 		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot2)
+		sfxPlayer.SetVolume(0.5)
 		sfxPlayer.Play()
 	}
 }

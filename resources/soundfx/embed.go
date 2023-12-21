@@ -21,3 +21,6 @@ var ExtraLife []byte
 
 //go:embed game-over.wav
 var GameOver []byte
+
+//go:embed thrust.wav
+var Thrust []byte

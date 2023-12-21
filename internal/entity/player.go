@@ -147,6 +147,9 @@ func (p *Player) HandleMovement() {
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		p.sprite.MoveForward(0.2, maxSpeed)
 		p.sprite.Image = sprites.SpaceShip2
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.Thrust)
+		sfxPlayer.SetVolume(0.1)
+		sfxPlayer.Play()
 
 	} else {
 		// Back to normal
@@ -163,7 +166,8 @@ func (p *Player) HandleShooting() {
 		spawnPosn := geometry.Add(p.Position(), geometry.VectorFrom(p.sprite.Direction, blastRadius))
 		p.bullets[p.sequence.GetNext()] = NewBullet(p.screenBounds, spawnPosn, direction, sprites.Small)
 
-		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot1)
+		sfxPlayer := audioContext.NewPlayerFromBytes(soundfx.LazerGunShot2)
+		sfxPlayer.SetVolume(0.5)
 		sfxPlayer.Play()
 	}
 }
