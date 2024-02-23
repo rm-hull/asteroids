@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install packages
         run: |
@@ -29,7 +29,7 @@ jobs:
           sudo apt install -y build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
 
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.21"
 
@@ -39,7 +39,7 @@ jobs:
         run: xvfb-run --auto-servernum  go test -race -v ./...
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54
 
@@ -53,13 +53,13 @@ jobs:
         run: cp -av $(go env GOROOT)/misc/wasm/wasm_exec.js web/
 
       - name: Configure Github Pages
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@v4
 
       - name: Upload WASM artifacts 
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: web/
 
       - id: deployment
         name: Deploy to Github Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
