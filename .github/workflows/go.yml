@@ -15,10 +15,7 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,15 +25,36 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: ${{ runner.os }}-apt-cache
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.23"
 
       - name: Test
         env:
           DISPLAY: ":99.0"
-        run: xvfb-run --auto-servernum  go test -race -v ./...
+        run: |
+          xvfb-run --auto-servernum go test -race -v -coverprofile=coverage.out ./...
+
+      - name: Collect test reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: ./test-reports/
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.out
 
       - name: Lint
         uses: golangci/golangci-lint-action@v4
@@ -49,6 +67,15 @@ jobs:
           GOARCH: wasm
         run: go build -v -o web/asteroids.wasm
 
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Copy files
         run: cp -av $(go env GOROOT)/misc/wasm/wasm_exec.js web/
 
