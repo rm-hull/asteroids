@@ -89,6 +89,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: web-artifacts
+          path: web/
 
       - name: Configure Github Pages
         uses: actions/configure-pages@v4
