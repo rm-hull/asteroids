@@ -67,6 +67,15 @@ jobs:
           GOARCH: wasm
         run: go build -v -o web/asteroids.wasm
 
+      - name: Copy files
+        run: cp -av $(go env GOROOT)/misc/wasm/wasm_exec.js web/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-artifacts
+          path: ./web
+
   deploy:
     if: github.ref == 'refs/heads/main'
     needs:
@@ -76,13 +85,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Copy files
-        run: cp -av $(go env GOROOT)/misc/wasm/wasm_exec.js web/
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: web-artifacts
 
       - name: Configure Github Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload WASM artifacts 
+      - name: Upload WASM artifacts to Github Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: web/
