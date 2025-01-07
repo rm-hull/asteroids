@@ -1,4 +1,4 @@
-# Asteroids
+# Asteroids [![Go Report Card](https://goreportcard.com/badge/github.com/rm-hull/asteroids)](https://goreportcard.com/report/github.com/rm-hull/asteroids)
 
 A modern implementation (in [Golang](https://go.dev/)) of the classic arcade game.
 
