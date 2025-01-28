@@ -17,7 +17,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Player struct {
@@ -69,18 +69,31 @@ func NewPlayer(screenBounds *geometry.Dimension) *Player {
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
-	text.Draw(screen, fmt.Sprintf("LIVES: %d", p.livesLeft), fonts.AsteroidsDisplayFont16, 0, 30, color.White)
-	text.Draw(screen, fmt.Sprintf("SCORE: %d", p.score), fonts.AsteroidsDisplayFont16, 350, 30, color.White)
-	text.Draw(screen, fmt.Sprintf("FPS: %0.2f", ebiten.ActualFPS()), fonts.AsteroidsDisplayFont16, 700, 30, color.White)
+
+	op := &text.DrawOptions{}
+	op.ColorScale.ScaleWithColor(color.White)
+
+	op.GeoM.Translate(0, 30)
+	text.Draw(screen, fmt.Sprintf("LIVES: %d", p.livesLeft), fonts.AsteroidsFace32, op)
+
+	op.GeoM.Translate(400, 0)
+	text.Draw(screen, fmt.Sprintf("SCORE: %d", p.score), fonts.AsteroidsFace32, op)
+
+	op.GeoM.Translate(400, 0)
+	text.Draw(screen, fmt.Sprintf("FPS: %0.2f", ebiten.ActualFPS()), fonts.AsteroidsFace32, op)
 
 	if p.livesLeft == 0 {
 		message := "GAME OVER"
-		x, y := text_align.Center(p.screenBounds, message, fonts.AsteroidsDisplayFont32)
-		text.Draw(screen, message, fonts.AsteroidsDisplayFont32, x, y, color.White)
+		x, y := text_align.Center(p.screenBounds, message, fonts.AsteroidsFace64)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(x), float64(y))
+		text.Draw(screen, message, fonts.AsteroidsFace64, op)
 
 		message = "PRESS \"R\" TO RESTART"
-		x, _ = text_align.Center(p.screenBounds, message, fonts.AsteroidsDisplayFont16)
-		text.Draw(screen, message, fonts.AsteroidsDisplayFont16, x, y+48, color.White)
+		x, _ = text_align.Center(p.screenBounds, message, fonts.AsteroidsFace32)
+		op.GeoM.Reset()
+		op.GeoM.Translate(float64(x), float64(y+96))
+		text.Draw(screen, message, fonts.AsteroidsFace32, op)
 		return
 	}
 

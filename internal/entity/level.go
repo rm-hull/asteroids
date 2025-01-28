@@ -12,7 +12,7 @@ import (
 	"github.com/rm-hull/asteroids/internal/text_align"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Level struct {
@@ -39,7 +39,11 @@ func (l *Level) Draw(screen *ebiten.Image) {
 	if l.IsExpired() {
 		return
 	}
-	text.Draw(screen, l.message, fonts.AsteroidsDisplayFont32, int(l.position.X), int(l.position.Y), color.White)
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(l.position.X, l.position.Y)
+	op.ColorScale.ScaleWithColor(color.White)
+
+	text.Draw(screen, l.message, fonts.AsteroidsFace64, op)
 }
 
 func (l *Level) Update() error {
@@ -68,7 +72,7 @@ func (l *Level) Reset(level int) {
 	l.current = level
 
 	l.message = fmt.Sprintf("LEVEL %d", l.current)
-	x, y := text_align.Center(l.bounds, l.message, fonts.AsteroidsDisplayFont32)
+	x, y := text_align.Center(l.bounds, l.message, fonts.AsteroidsFace64)
 
 	l.position.X = float64(x)
 	l.position.Y = float64(y)
