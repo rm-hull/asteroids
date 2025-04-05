@@ -58,8 +58,6 @@ jobs:
 
       - name: Lint
         uses: golangci/golangci-lint-action@v7
-        with:
-          version: v1.54
 
       - name: Build
         env:
