@@ -240,7 +240,9 @@ func (p *Player) Kill() {
 }
 
 func (p *Player) NotNear() *geometry.Vector {
-	sqHalfH := math.Pow(p.screenBounds.H/2, 2)
+	halfH := p.screenBounds.H / 2
+	sqHalfH := halfH * halfH
+
 	for {
 		position := geometry.Vector{
 			X: rand.Float64() * p.screenBounds.W,
