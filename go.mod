@@ -2,7 +2,7 @@ module github.com/rm-hull/asteroids
 
 go 1.22.0
 
-require github.com/hajimehoshi/ebiten/v2 v2.8.7
+require github.com/hajimehoshi/ebiten/v2 v2.8.8
 
 require (
 	github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee // indirect
