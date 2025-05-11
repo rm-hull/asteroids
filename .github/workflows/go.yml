@@ -57,7 +57,7 @@ jobs:
           path-to-lcov: coverage.out
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v8
 
       - name: Build
         env:
