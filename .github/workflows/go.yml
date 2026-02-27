@@ -45,7 +45,7 @@ jobs:
 
       - name: Collect test reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports
           path: ./test-reports/
@@ -70,7 +70,7 @@ jobs:
         run: cp -av $(go env GOROOT)/lib/wasm/wasm_exec.js web/
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: web-artifacts
           path: ./web
