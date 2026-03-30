@@ -91,7 +91,7 @@ jobs:
           path: web/
 
       - name: Configure Github Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload WASM artifacts to Github Pages
         uses: actions/upload-pages-artifact@v4
