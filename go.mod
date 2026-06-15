@@ -12,8 +12,8 @@ require (
 	github.com/go-text/typesetting v0.3.4 // indirect
 	github.com/jezek/xgb v1.3.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/image v0.41.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/image v0.42.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
