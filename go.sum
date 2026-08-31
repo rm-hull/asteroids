@@ -12,8 +12,8 @@ github.com/go-text/typesetting-utils v0.0.0-20260223113751-2d88ac90dae3 h1:drBZz
 github.com/go-text/typesetting-utils v0.0.0-20260223113751-2d88ac90dae3/go.mod h1:3/62I4La/HBRX9TcTpBj4eipLiwzf+vhI+7whTc9V7o=
 github.com/hajimehoshi/bitmapfont/v4 v4.1.0 h1:eE3qa5Do4qhowZVIHjsrX5pYyyPN6sAFWMsO7QREm3U=
 github.com/hajimehoshi/bitmapfont/v4 v4.1.0/go.mod h1:/PD+aLjAJ0F2UoQx6hkOfXqWN7BkroDUMr5W+IT1dpE=
-github.com/hajimehoshi/ebiten/v2 v2.9.10 h1:Z2z8hq8/RVS4tfUcjKGdwzhBhNTbxSkxv867MPiGCLM=
-github.com/hajimehoshi/ebiten/v2 v2.9.10/go.mod h1:UqZjna6ppO9dTZtO97LySdB5ustokqOcQKrAfWPrVro=
+github.com/hajimehoshi/ebiten/v2 v2.9.11 h1:VXnv8jHvTHEeLBoPKEvPdywwJdcemur+EoXE/0Gsj78=
+github.com/hajimehoshi/ebiten/v2 v2.9.11/go.mod h1:UqZjna6ppO9dTZtO97LySdB5ustokqOcQKrAfWPrVro=
 github.com/jezek/xgb v1.3.1 h1:NQCAEfQyzN+3RjWUSHBuVIxQcy2YfG3/mNvKfs/0rEg=
 github.com/jezek/xgb v1.3.1/go.mod h1:nrhwO0FX/enq75I7Y7G8iN1ubpSGZEiA3v9e9GyRFlk=
 github.com/pierrec/lz4/v4 v4.1.22 h1:cKFw6uJDK+/gfw5BcDL0JL5aBsAFdsIT18eRtLj7VIU=
