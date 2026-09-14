@@ -1,6 +1,6 @@
 module github.com/rm-hull/asteroids
 
-go 1.25.0
+go 1.27
 
 require github.com/hajimehoshi/ebiten/v2 v2.10.0
 
